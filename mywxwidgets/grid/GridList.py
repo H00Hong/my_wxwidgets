@@ -14,37 +14,52 @@ from typing import Union, Sequence, List, Tuple
 import wx
 import wx.grid as gridlib
 
-from .GridBase import DataBase, HGridBase, build_empty, FONT0, FONT1
+from .GridBase import DataBase, GridBase, build_empty, FONT0, FONT1
 
 
-def listT(x: List[list]):
+def list_transpose(x: List[list]):
     return [list(i) for i in zip(*x)]
 
-def _DeleteRows(data, pos, numRows):
+
+def _delete_rows(data: List[list], pos: int, numRows: int):
     return data[:pos] + data[pos + numRows:]
-def _DeleteCols(data, pos, numCols):
-    dat = listT(data)
+
+
+def _delete_cols(data: List[list], pos: int, numCols: int):
+    dat = list_transpose(data)
     dat_ = dat[:pos] + dat[pos + numCols:]
-    return listT(dat_)
-def _AppendRows(data, numRows):
+    return list_transpose(dat_)
+
+
+def _append_rows(data: List[list], numRows: int):
     ncols = len(data[0])
     data += build_empty(numRows, ncols)
     return data
-def _AppendCols(data, numCols):
+
+
+def _append_cols(data: List[list], numCols: int):
     nrows = len(data)
     lst = build_empty(numCols, nrows)
-    dat = listT(data)
-    return listT(dat + lst)
-def _InsertRows(data, pos, numRows=1):
+    dat = list_transpose(data)
+    return list_transpose(dat + lst)
+
+
+def _insert_rows(data: List[list], pos: int, numRows: int = 1):
     ncols = len(data[0])
     lst = build_empty(numRows, ncols)
     return data[:pos] + lst + data[pos:]
-def _InsertCols(data, pos, numCols=1):
+
+
+def _insert_cols(data: List[list], pos: int, numCols: int = 1):
     nrows = len(data)
     lst = build_empty(numCols, nrows)
-    dat = listT(data)
+    dat = list_transpose(data)
     dat_ = dat[:pos] + lst + dat[pos:]
-    return listT(dat_)
+    return list_transpose(dat_)
+
+
+def _set_value(data: List[list], row: int, col: int, value):
+    data[row][col] = value
 
 
 class DataBaseList(DataBase):
@@ -53,7 +68,7 @@ class DataBaseList(DataBase):
     """
 
     def __init__(self,
-                 data: Union[List[list], list, Tuple[int,...], None] = None,
+                 data: Union[List[list], list, Tuple[int, ...], None] = None,
                  rowLables: Union[List[str], None] = None,
                  colLabels: Union[List[str], None] = None) -> None:
         gridlib.GridTableBase.__init__(self)
@@ -65,24 +80,27 @@ class DataBaseList(DataBase):
         self.data = data
         self.rowlabels = rowLables
         self.collabels = colLabels
-        
-        self._func['DeleteRows'] = _DeleteRows
-        self._func['DeleteCols'] = _DeleteCols
-        self._func['AppendRows'] = _AppendRows
-        self._func['AppendCols'] = _AppendCols
-        self._func['InsertRows'] = _InsertRows
-        self._func['InsertCols'] = _InsertCols
+
+        self._func['DeleteRows'] = _delete_rows
+        self._func['DeleteCols'] = _delete_cols
+        self._func['AppendRows'] = _append_rows
+        self._func['AppendCols'] = _append_cols
+        self._func['InsertRows'] = _insert_rows
+        self._func['InsertCols'] = _insert_cols
         self._func['SetData'] = self._check_list
         self._func['GetValue'] = lambda data, row, col: data[row][col]
-        self._func['SetValue'] = self._set_datavalue
+        self._func['SetValue'] = _set_value
 
     def _check_list(self, lst):
-        if not isinstance(lst[0], list):
+        if not isinstance(lst, list):
+            raise TypeError('DataBaseList\'s data type must be list')
+        if all([isinstance(i, str) for i in lst]):
             return [lst]
-        return lst
-
-    def _set_datavalue(self, data, row, col, value):
-        data[row][col] = value
+        if all([isinstance(i, list) for i in lst]):
+            if all([all([isinstance(j, str) for j in i]) for i in lst]):
+                return lst
+        raise TypeError(
+            'DataBaseList\'s data type must be list[list[str]] or list[str]')
 
     def GetNumberRows(self):
         return len(self.data)
@@ -99,24 +117,23 @@ class DataBaseList(DataBase):
         self.ValuesGeted()
 
 
-class Grid(HGridBase):
+class Grid(GridBase):
 
-    def __init__(self, 
-                 parent, 
-                 data: Union[List[list], tuple, None] = None, 
-                 id=wx.ID_ANY, 
+    def __init__(self,
+                 parent,
+                 data: Union[List[list], tuple, None] = None,
+                 id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
                  name=gridlib.GridNameStr) -> None:
-        super().__init__(parent, DataBaseList(data), id, 
-                         pos, size, style, name)
-        self.basetype = 'list' # 数据类型标识
+        super().__init__(parent, DataBaseList(data), id, pos, size, style,
+                         name)
+        self.basetype = 'list'  # 数据类型标识
         # self.HideRowLabels()
         # self.HideColLabels()
 
-
-    def SetData(self, data:list):
+    def SetData(self, data: list):
         if not isinstance(data, list):
             raise ValueError('HGrid_list.SetData: data 数据类型不支持')
         # if not isinstance(data[0], list):
@@ -126,9 +143,10 @@ class Grid(HGridBase):
 
 class GridWithHeader(wx.Panel):
 
-    def __init__(self, parent,
-                 subject: Union[List[list], Tuple[int,...], None] = None,
-                 header: Union[List[list], Tuple[int,...], None] = None,
+    def __init__(self,
+                 parent,
+                 subject: Union[List[List[str]], Tuple[int, ...], None] = None,
+                 header: Union[List[List[str]], Tuple[int, ...], None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
@@ -142,8 +160,10 @@ class GridWithHeader(wx.Panel):
                 header = (1, subject[1])
             elif isinstance(subject, list):
                 header = (1, len(subject[0]))
-        self.header = Grid(self, -1, header)
-        self.subject = Grid(self, -1, subject)
+            else:
+                raise TypeError('GridWithHeader: subject 数据类型不支持')
+        self.header = Grid(self, header)
+        self.subject = Grid(self, subject)
         self.header.HideColLabels()
         self.subject.HideColLabels()
         self._isRowLabelsVisable = 1
@@ -157,8 +177,8 @@ class GridWithHeader(wx.Panel):
         self.layout.Add(self.subject, 1, wx.ALL | wx.EXPAND, 0)
         self.SetSizer(self.layout)
 
-        self.header.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll) # 横向滚动条同步
-        self.subject.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll) # 横向滚动条同步
+        self.header.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)  # 横向滚动条同步
+        self.subject.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)  # 横向滚动条同步
         # 根据实际长度改变高度 防止滚动条遮盖内容
         self.header.Bind(gridlib.EVT_GRID_CELL_CHANGED, self._on_changed_size)
         self.subject.Bind(gridlib.EVT_GRID_CELL_CHANGED, self._on_changed_size)
@@ -191,7 +211,7 @@ class GridWithHeader(wx.Panel):
 
     def _on_changed_size(self, event):
         # 根据实际长度改变高度 防止滚动条遮盖内容
-        grid = event.GetEventObject() # 获取事件的发送者
+        grid = event.GetEventObject()  # 获取事件的发送者
         self._on_changed_size_(grid)
         self.layout.Layout()
         event.Skip()
@@ -238,21 +258,22 @@ class GridWithHeader(wx.Panel):
 
 
 if __name__ == '__main__':
-    
+
     app = wx.App()
     frame = wx.Frame(None, -1, '测试', size=(400, 400))
-    grid = GridWithHeader(frame,  (10, 10))
+    grid = GridWithHeader(frame, (10, 10))
     grid.SetHeaderLabels(['a'])
     sizer = wx.BoxSizer(wx.VERTICAL)
-    sizer.Add(grid, 1, wx.EXPAND| wx.ALL, 5)
+    sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
     but = wx.Button(frame, -1, 'test')
-    sizer.Add(but, 0, wx.EXPAND| wx.ALL, 5)
+    sizer.Add(but, 0, wx.EXPAND | wx.ALL, 5)
     frame.SetSizer(sizer)
+
     def on_click(event):
-        grid.SetSubject([[1,2,3],[4,5,6]])
+        grid.SetSubject([[1, 2, 3], [4, 5, 6]])
         grid.SetHeader(['a', 'b', 'c'])
-    
+
     but.Bind(wx.EVT_BUTTON, on_click)
-    
+
     frame.Show()
     app.MainLoop()

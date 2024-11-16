@@ -15,10 +15,10 @@ from numpy import array, asarray, ndarray, newaxis, insert, delete
 import wx
 import wx.grid as gridlib
 
-from .GridBase import DataBase, HGridBase, FONT0, FONT1, build_empty
+from .GridBase import DataBase, GridBase, FONT0, FONT1, build_empty
 
 
-def _set_datavalue(data: ndarray, row: int, col: int, value) -> None:
+def _set_value(data: ndarray, row: int, col: int, value) -> None:
     data[row, col] = value
 
 
@@ -50,6 +50,17 @@ def _insert_cols(data: ndarray, pos: int, numCols: int):
     return insert(data, pos, _empty(numCols, data.shape[0]), axis=1)
 
 
+def _check_array(arr: ndarray):
+    if arr.ndim == 0:
+        return arr.reshape(1, 1)
+    elif arr.ndim == 1:
+        return arr[:, newaxis]
+    elif arr.ndim == 2:
+        return arr
+    else:
+        raise ValueError('The `ndim` of the input array must <= 2')
+
+
 class DataBaseNDArray(DataBase):  # 基类
     # ndarray
     data: ndarray
@@ -75,18 +86,10 @@ class DataBaseNDArray(DataBase):  # 基类
         self._func['InsertCols'] = _insert_cols
         self._func['SetData'] = self._check_array
         self._func['GetValue'] = lambda data, row, col: data[row, col]
-        self._func['SetValue'] = _set_datavalue
+        self._func['SetValue'] = _set_value
 
     def _check_array(self, obj):
-        arr = array(obj)
-        if arr.ndim == 0:
-            return arr.reshape(1, 1)
-        elif arr.ndim == 1:
-            return arr[:, newaxis]
-        elif arr.ndim == 2:
-            return arr
-        else:
-            raise ValueError('dataGrid.data.ndim must <= 2')
+        return _check_array(asarray(obj))
 
     def GetNumberRows(self):
         return self.data.shape[0]
@@ -99,7 +102,7 @@ class DataBaseNDArray(DataBase):  # 基类
         return item == '' or item is None
 
     def Clear(self):
-        self.data = self._empty(self.GetNumberRows(), self.GetNumberCols())
+        self.data = _empty(self.GetNumberRows(), self.GetNumberCols())
         self.ValuesGeted()
 
 
@@ -107,31 +110,17 @@ class DataBaseObj(DataBaseNDArray):
 
     def _check_array(self, obj):
         arr = array(obj, object)
-        if arr.ndim == 0:
-            return arr.reshape(1, 1)
-        elif arr.ndim == 1:
-            return arr[:, newaxis]
-        elif arr.ndim == 2:
-            return arr
-        else:
-            raise ValueError('dataGrid.data.ndim must <= 2')
+        super()._check_array(arr)
 
 
 class DataBaseStr(DataBaseNDArray):
 
     def _check_array(self, obj):
         arr = array(obj, str)
-        if arr.ndim == 0:
-            return arr.reshape(1, 1)
-        elif arr.ndim == 1:
-            return arr[:, newaxis]
-        elif arr.ndim == 2:
-            return arr
-        else:
-            raise ValueError('dataGrid.data.ndim > 2')
+        super()._check_array(arr)
 
 
-class Grid(HGridBase):
+class Grid(GridBase):
     dataBase: DataBaseNDArray
 
     def __init__(self,

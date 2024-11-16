@@ -8,7 +8,7 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import Sequence, List, Tuple, Callable, Dict, Optional, Iterable, TypedDict
+from typing import List, Tuple, Callable, Optional, Iterable, TypedDict
 
 import wx
 import wx.grid as gridlib
@@ -25,20 +25,18 @@ FONT1 = (16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
 
 
 class _FuncDict(TypedDict):
-    DeleteRows: Optional[Callable] # Callable[[List[list], int, int], List[list]]
-    InsertRows: Optional[Callable] # Callable[[List[list], int, int], List[list]]
-    AppendRows: Optional[Callable] # Callable[[List[list], int, int], List[list]]
-    DeleteCols: Optional[Callable] # Callable[[List[list], int, int], List[list]]
-    InsertCols: Optional[Callable] # Callable[[List[list], int, int], List[list]]
-    AppendCols: Optional[Callable] # Callable[[List[list], int, int], List[list]]
-    GetValue: Optional[Callable] # Callable[[List[list], int, int], str]
-    SetValue: Optional[Callable] # Callable[[List[list], int, int, str], None]
-    SetData: Optional[Callable] # Callable[[List[list]], List[list]]
+    DeleteRows: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
+    InsertRows: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
+    AppendRows: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
+    DeleteCols: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
+    InsertCols: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
+    AppendCols: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
+    GetValue: Optional[Callable]  # Callable[[List[list], int, int], str]
+    SetValue: Optional[Callable]  # Callable[[List[list], int, int, str], None]
+    SetData: Optional[Callable]  # Callable[[List[list]], List[list]]
 
 
 class DataBase(gridlib.GridTableBase):  # 基类
-
-
 
     data: List[list]
     rowlabels: Optional[List[str]]
@@ -56,8 +54,11 @@ class DataBase(gridlib.GridTableBase):  # 基类
         'SetData': None,
     }
 
-    def GetNumberRows(self): raise NotImplementedError # return len(self.data)
-    def GetNumberCols(self): raise NotImplementedError # return len(self.data[0])
+    def GetNumberRows(self):  # return len(self.data)
+        raise NotImplementedError('not implement GetNumberRows')
+
+    def GetNumberCols(self):  # return len(self.data[0])
+        raise NotImplementedError('not implement GetNumberCols')
 
     def GetValue(self, row: int, col: int):
         try:
@@ -99,129 +100,161 @@ class DataBase(gridlib.GridTableBase):  # 基类
         self._func['SetValue'](self.data, row, col, value)
         self.ValuesGeted()
 
+#region ProcessTableMessage
+
     def ValuesGeted(self):
         # print('GetValues')
         self.GetView().ProcessTableMessage(
             gridlib.GridTableMessage(
                 self, gridlib.GRIDTABLE_REQUEST_VIEW_GET_VALUES))
 
-    def RowsDeleted(self, pos:int, numRows:int):
+    def RowsDeleted(self, pos: int, numRows: int):
         self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED,
-                pos, numRows))
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED,
+                                     pos, numRows))
 
-    def RowsAppended(self, numRows:int):
+    def RowsAppended(self, numRows: int):
         self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED,
-                numRows))
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED,
+                                     numRows))
 
-    def RowsInserted(self, pos:int, numRows:int):
+    def RowsInserted(self, pos: int, numRows: int):
         self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED,
-                pos, numRows))
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED,
+                                     pos, numRows))
 
-    def ColsDeleted(self, pos:int, numCols:int):
+    def ColsDeleted(self, pos: int, numCols: int):
         self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_NOTIFY_COLS_DELETED,
-                pos, numCols))
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_COLS_DELETED,
+                                     pos, numCols))
 
-    def ColsAppended(self, numCols:int):
+    def ColsAppended(self, numCols: int):
         self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED,
-                numCols))
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED,
+                                     numCols))
 
-    def ColsInserted(self, pos:int, numCols:int):
+    def ColsInserted(self, pos: int, numCols: int):
         self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED,
-                pos, numCols))
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED,
+                                     pos, numCols))
 
-    def RowLabelRedrawed(self, row:int):
+
+#endregion
+
+    def RowLabelRedrawed(self, row: int):
         pass
 
-    def SetRowLabels(self, rowlables:Iterable):
+    def SetRowLabels(self, rowlables: Iterable):
+        if isinstance(rowlables, Iterable):
+            raise TypeError('rowlables must be Iterable')
         self.rowlabels = [str(i) for i in rowlables]
 
-    def SetRowLabelValue(self, row:int, label:str):
+    def SetRowLabelValue(self, row: int, label: str):
         if self.rowlabels is None:
             return False
         self.rowlabels[row] = label
         return True
 
-    def GetRowLabelValue(self, row:int):
+    def GetRowLabelValue(self, row: int):
         if self.rowlabels:
             return self.rowlabels[row]
         return super().GetRowLabelValue(row)
 
-    def SetColLabels(self, collabels:Iterable):
+    def SetColLabels(self, collabels: Iterable):
+        if isinstance(collabels, Iterable):
+            raise TypeError('collabels must be Iterable')
         self.collabels = [str(i) for i in collabels]
 
-    def SetColLabelValue(self, col:int, label:str):
+    def SetColLabelValue(self, col: int, label: str):
         if self.collabels is None:
             return False
         self.collabels[col] = label
         return True
 
-    def GetColLabelValue(self, col:int):
+    def GetColLabelValue(self, col: int):
         if self.collabels:
             return self.collabels[col]
         return super().GetColLabelValue(col)
 
-    def IsEmptyCell(self, row:int, col:int):
+    def IsEmptyCell(self, row: int, col: int):
         item = self.GetValue(row, col)
         return item == '' or item is None
 
-    def DeleteRows(self, pos:int, numRows:int=1):
+    def DeleteRows(self, pos: int, numRows: int = 1):
         func = self._func['DeleteRows']
         assert func is not None, 'not implement DeleteRows'
-        self.data = func(self.data, pos, numRows)
-        self.RowsDeleted(pos, numRows)
-        return True
+        try:
+            self.data = func(self.data, pos, numRows)
+            self.RowsDeleted(pos, numRows)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
-    def DeleteCols(self, pos:int, numCols:int=1):
+    def DeleteCols(self, pos: int, numCols: int = 1):
         func = self._func['DeleteCols']
         assert func is not None, 'not implement DeleteCols'
-        self.data = func(self.data, pos, numCols)
-        self.ColsDeleted(pos, numCols)
-        return True
+        try:
+            self.data = func(self.data, pos, numCols)
+            self.ColsDeleted(pos, numCols)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
-    def AppendRows(self, numRows:int=1):
+    def AppendRows(self, numRows: int = 1):
         func = self._func['AppendRows']
         assert func is not None, 'not implement AppendRows'
-        self.data = func(self.data, numRows)
-        self.RowsAppended(numRows)
-        self.ValuesGeted()
-        return True
+        try:
+            self.data = func(self.data, numRows)
+            self.RowsAppended(numRows)
+            self.ValuesGeted()
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
-    def AppendCols(self, numCols:int=1):
+    def AppendCols(self, numCols: int = 1):
         func = self._func['AppendCols']
         assert func is not None, 'not implement AppendCols'
-        self.data = func(self.data, numCols)
-        self.ColsAppended(numCols)
-        self.ValuesGeted()
-        return True
+        try:
+            self.data = func(self.data, numCols)
+            self.ColsAppended(numCols)
+            self.ValuesGeted()
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
-    def InsertRows(self, pos:int, numRows:int=1):
+    def InsertRows(self, pos: int, numRows: int = 1):
         func = self._func['InsertRows']
         assert func is not None, 'not implement AppendCols'
-        self.data = func(self.data, pos, numRows)
-        self.RowsInserted(pos, numRows)
-        self.ValuesGeted()
-        return True
+        try:
+            self.data = func(self.data, pos, numRows)
+            self.RowsInserted(pos, numRows)
+            self.ValuesGeted()
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
-    def InsertCols(self, pos:int, numCols:int=1):
+    def InsertCols(self, pos: int, numCols: int = 1):
         func = self._func['InsertCols']
         assert func is not None, 'not implement AppendCols'
-        self.data = func(self.data, pos, numCols)
-        self.ColsInserted(pos, numCols)
-        self.ValuesGeted()
-        return True
-
+        try:
+            self.data = func(self.data, pos, numCols)
+            self.ColsInserted(pos, numCols)
+            self.ValuesGeted()
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
 COPY = 'Copy'
 PASTE = 'Paste'
@@ -235,18 +268,18 @@ DELETE_ROWS = 'DeleteRows'
 DELETE_COLS = 'DeleteCols'
 
 
-class HGridBase(gridlib.Grid):
+class GridBase(gridlib.Grid):
 
-    _MENU_ITEM = (
+    _MENU_ITEM: Tuple[Tuple[Optional[str], str], ...] = (
         (COPY, '复制  Ctrl+C'),
         (PASTE, '粘贴  Ctrl+V'),
         (CUT, '剪切  Ctrl+X'),
-        (None, None),
+        (None, ''),
         (INSERT_UP, '向上插入空行'),
         (INSERT_DOWN, '向下插入空行'),
         (INSERT_LEFT, '向左插入空列'),
         (INSERT_RIGHT, '向右插入空列'),
-        (None, None),
+        (None, ''),
         (DELETE_VALUE, '清除  Delete'),
         (DELETE_ROWS, '删除行'),
         (DELETE_COLS, '删除列')
@@ -254,15 +287,16 @@ class HGridBase(gridlib.Grid):
 
     def __init__(self,
                  parent,
-                 dataBase: DataBase,
+                 dataBase: DataBase,  # 需要实现DataBase
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
-                 name='HGridBase') -> None:  # 需要实现dataBase
+                 name='HGridBase') -> None:
         super().__init__(parent, id, pos, size, style, name)
         self.dataBase = dataBase
         self.SetTable(self.dataBase, True)
+        self._selected_range: Tuple[Tuple[int, int], Tuple[int, int]] = ((0, 0), (0, 0))
         self._menu_event()
 
         font0 = wx.Font(*FONT0)
@@ -285,49 +319,51 @@ class HGridBase(gridlib.Grid):
         self.popupmenu = wx.Menu()
         # 绑定左键选择事件 获取选中区域
         self.Bind(gridlib.EVT_GRID_RANGE_SELECT, self._OnRangeSelect)
-        self._selected_range:Tuple[Tuple[int, int], Tuple[int, int]] = ((0, 0), (0, 0))
         self.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK, self._OnLeftClick)
         # 绑定右键菜单事件
         self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self._OnRightClick)
 
         for i, (it0, it1) in enumerate(self._MENU_ITEM):
             if it0 is None:
-                self.popupmenu.AppendSeparator() # 插入分割线
+                self.popupmenu.AppendSeparator()  # 插入分割线
             else:
-                i += 10000
-                self.popupmenu.Append(i, it1) # 添加菜单项
+                i += 10000  # 防止和一般ID冲突
+                self.popupmenu.Append(i, it1)  # 添加菜单项
                 self.Bind(wx.EVT_MENU,
                           handler=getattr(self, '_On' + it0),
-                          id=i) # 绑定菜单项事件
+                          id=i)  # 绑定菜单项事件
         # 绑定键盘事件
         self.Bind(wx.EVT_KEY_DOWN, self._OnKeyDown)
+
+#region event_bind
 
     def _OnRangeSelect(self, event):
         # 当选择区域变化时，保存新的选定区域
         if event.Selecting():
-            self._selected_range: Tuple[Tuple[int, int], Tuple[int, int]] = (event.GetTopLeftCoords(), event.GetBottomRightCoords())
+            self._selected_range: Tuple[Tuple[int, int], Tuple[int, int]] = (
+                event.GetTopLeftCoords(), event.GetBottomRightCoords())
         # else:
         #     self._selected_range = None
 
     def _OnLeftClick(self, event):
         # 获取被点击的行和列
-        row:int = event.GetRow()
-        col:int = event.GetCol()
+        row: int = event.GetRow()
+        col: int = event.GetCol()
         self._selected_range = ((row, col), (row, col))
         event.Skip()
         # print(row, col)
 
-    def _OnKeyDown(self, event:wx.KeyEvent):
+    def _OnKeyDown(self, event: wx.KeyEvent):
         key_code = event.GetKeyCode()  # 获取按键编码
         modifiers = event.GetModifiers()  # 获取按键修饰符
         # print('KeyCode:\t', key_code)
         # print('Modifiers:\t', modifiers)
         if modifiers == 2:  # 修饰符为ctrl
-            if key_code == 67:  # 修饰符为ctrl并且按下的是c
+            if key_code == 67:  # ctrl+c
                 self._OnCopy(event)
-            elif key_code == 86:  # 修饰符为ctrl并且按下的是v
+            elif key_code == 86:  # ctrl+v
                 self._OnPaste(event)
-            elif key_code == 88:  # 修饰符为ctrl并且按下的是x
+            elif key_code == 88:  # ctrl+x
                 self._OnCut(event)
         if modifiers == 0 and key_code == 127:  # 修饰符为空并且按下的是delete
             self._OnDeleteValue(event)
@@ -338,7 +374,7 @@ class HGridBase(gridlib.Grid):
         #     print(event.GetRow())
 
     def _OnRightClick(self, event):
-        event.Skip(False) # 阻止默认的右键点击行为
+        event.Skip(False)  # 阻止默认的右键点击行为
         # 获取被点击的行和列
         row: int = event.GetRow()
         col: int = event.GetCol()
@@ -346,7 +382,8 @@ class HGridBase(gridlib.Grid):
         # 检查是否有选定的区域
         if self._selected_range:
             top_left, bottom_right = self._selected_range
-            if row < top_left[0] or row > bottom_right[0] or col < top_left[1] or col > bottom_right[1]:
+            if row < top_left[0] or row > bottom_right[0] or col < top_left[
+                    1] or col > bottom_right[1]:
                 self.SelectBlock(row, col, row, col)
                 self._selected_range = ((row, col), (row, col))
             # print(f"之前选定的区域从第{top_left[0]}行，第{top_left[1]}列到第{bottom_right[0]}行，第{bottom_right[1]}列")
@@ -366,8 +403,8 @@ class HGridBase(gridlib.Grid):
         top_left, bottom_right = self._selected_range
         # print(top_left)
         # print(bottom_right)
-        lst = self.dataBase.data[top_left[0]: bottom_right[0] + 1]
-        lst_ = (map(str, it[top_left[1]: bottom_right[1] + 1]) for it in lst)
+        lst = self.dataBase.data[top_left[0]:bottom_right[0] + 1]
+        lst_ = (map(str, it[top_left[1]:bottom_right[1] + 1]) for it in lst)
         text = '\n'.join(['\t'.join(i) for i in lst_])
         # 复制到剪切板
         if wx.TheClipboard.Open():
@@ -379,7 +416,7 @@ class HGridBase(gridlib.Grid):
         # x, y = self.GetSelectionBlockTopLeft()[0]
         x, y = self._selected_range[0]
         text_data = wx.TextDataObject()
-        if wx.TheClipboard.Open():
+        if wx.TheClipboard.Open():  # 读取剪切板
             success = wx.TheClipboard.GetData(text_data)
             wx.TheClipboard.Close()
         if success:
@@ -402,7 +439,7 @@ class HGridBase(gridlib.Grid):
             for i in range(len(ls1)):
                 for j in range(len(ls1[i])):
                     self.dataBase.data[i + x][j + y] = ls1[i][j]
-            self.dataBase.ValuesGeted() # 通知数据已经更新
+            self.dataBase.ValuesGeted()  # 通知数据已经更新
             # self.AutoSizeRows()
             self.ForceRefresh()
 
@@ -461,42 +498,58 @@ class HGridBase(gridlib.Grid):
         num = bottom_right[1] - top_left[1] + 1
         self.dataBase.DeleteCols(top_left[1], num)
 
-    def AppendCols(self, numCols=1, updateLabels=True):
-        self.dataBase.AppendCols(numCols)
+#endregion
+
+#tag 实现并覆盖内部方法
+
+    def AppendCols(self, numCols: int = 1, updateLabels: bool = True):
+        b = self.dataBase.AppendCols(numCols)
         # self.AutoSizeRows()
         if updateLabels:
             self.ForceRefresh()
-        return True
+        return b
 
-    def AppendRows(self, numRows=1, updateLabels=True):
-        self.dataBase.AppendRows(numRows)
+    def AppendRows(self, numRows: int = 1, updateLabels: int = True):
+        b = self.dataBase.AppendRows(numRows)
         # self.AutoSizeRows()
         if updateLabels:
             self.ForceRefresh()
-        return True
+        return b
 
-    def InsertCols(self, pos, numCols=1, updateLabels=True):
-        self.dataBase.InsertCols(pos, numCols)
+    def InsertCols(self,
+                   pos: int,
+                   numCols: int = 1,
+                   updateLabels: bool = True):
+        b = self.dataBase.InsertCols(pos, numCols)
         # self.AutoSizeRows()
         if updateLabels:
             self.ForceRefresh()
-        return True
+        return b
 
-    def InsertRows(self, pos, numRows=1, updateLabels=True):
-        self.dataBase.InsertRows(pos, numRows)
+    def InsertRows(self,
+                   pos: int,
+                   numRows: int = 1,
+                   updateLabels: bool = True):
+        b = self.dataBase.InsertRows(pos, numRows)
         # self.AutoSizeRows()
         if updateLabels:
             self.ForceRefresh()
-        return True
+        return b
 
-    def DeleteCols(self, pos, numCols=1, updateLabels=True):
-        self.dataBase.DeleteCols(pos, numCols)
+    def DeleteCols(self,
+                   pos: int,
+                   numCols: int = 1,
+                   updateLabels: bool = True):
+        b = self.dataBase.DeleteCols(pos, numCols)
         if updateLabels:
             self.ForceRefresh()
-        return True
+        return b
 
-    def DeleteRows(self, pos, numRows=1, updateLabels=True):
-        self.dataBase.DeleteRows(pos, numRows)
+    def DeleteRows(self,
+                   pos: int,
+                   numRows: int = 1,
+                   updateLabels: bool = True):
+        b = self.dataBase.DeleteRows(pos, numRows)
         if updateLabels:
             self.ForceRefresh()
-        return True
+        return b
