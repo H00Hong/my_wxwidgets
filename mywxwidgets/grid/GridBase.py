@@ -24,54 +24,445 @@ FONT1 = (16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
          False, 'Microsoft Yahei')
 
 
-class _FuncDict(TypedDict):
-    DeleteRows: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
-    InsertRows: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
-    AppendRows: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
-    DeleteCols: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
-    InsertCols: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
-    AppendCols: Optional[Callable]  # Callable[[List[list], int, int], List[list]]
-    GetValue: Optional[Callable]  # Callable[[List[list], int, int], str]
-    SetValue: Optional[Callable]  # Callable[[List[list], int, int, str], None]
-    SetData: Optional[Callable]  # Callable[[List[list]], List[list]]
-
-
 class DataBase(gridlib.GridTableBase):  # 基类
+    """
+    
+    """
 
     data: List[list]
     rowlabels: Optional[List[str]]
     collabels: Optional[List[str]]
 
-    _func: _FuncDict = {
-        'DeleteRows': None,
-        'InsertRows': None,
-        'AppendRows': None,
-        'DeleteCols': None,
-        'InsertCols': None,
-        'AppendCols': None,
-        'GetValue': None,
-        'SetValue': None,
-        'SetData': None,
-    }
+    def __init__(self):
+        gridlib.GridTableBase.__init__(self)
 
-    def GetNumberRows(self):  # return len(self.data)
-        raise NotImplementedError('not implement GetNumberRows')
+        _cls = type(self)
+        for method in ('GetNumberRows', 'GetNumberCols', 'SetDataFunc',
+                       'SetValueFunc', 'GetValueFunc', 'DeleteRowsFunc',
+                       'InsertRowsFunc', 'AppendRowsFunc', 'DeleteColsFunc',
+                       'InsertColsFunc', 'AppendColsFunc'):
+            # The abc module cannot be used
+            # check abstractmethod
+            if not (hasattr(_cls, method) and callable(getattr(_cls, method))
+                    and getattr(DataBase, method, None) != getattr(
+                        _cls, method)):
+                raise NotImplementedError(f'not implement {method}')
 
-    def GetNumberCols(self):  # return len(self.data[0])
-        raise NotImplementedError('not implement GetNumberCols')
+#region abstractmethod
 
-    def GetValue(self, row: int, col: int):
+    def GetNumberRows(self) -> int:
+        """
+        Override this method to return the number of rows in your data.
+        
+        Returns
+        -----
+        int
+            The number of rows in your data.
+        
+        example
+        -------
+        >>> def GetNumberRows(self):
+        >>>     return len(self.data)
+        """
+        ...
+
+    def GetNumberCols(self) -> int:
+        """
+        Override this method to return the number of columns in your data.
+        
+        Returns
+        -----
+        int
+            The number of columns in your data.
+        
+        example
+        -------
+        >>> def GetNumberCols(self):
+        >>>     return len(self.data[0])
+        """
+        ...
+
+    def SetDataFunc(self, data):
+        """
+        Override this method to set the entire data set.
+        Typically, a data check will be performed here.
+
+        Parameters
+        ----------
+        data : array-like
+            self.data
+        
+        Returns
+        ------
+        array-like 
+            `self.data`
+
+        example
+        -------
+        >>> def SetDataFunc(self, data):
+        >>>     if not isinstance(data, list):
+        >>>         raise TypeError('DataBaseList\'s data type must be list')
+        >>>     return data
+        """
+        ...
+
+    def SetValueFunc(self, data, row: int, col: int, value):
+        """
+        Override this method to set the value of the cell at the given row and
+        col. The value is expected to be a string.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        row : int
+            The row index of the cell.
+        col : int
+            The column index of the cell.
+        value : str or any
+            The value of the cell. If called from the GUI, this will be a string.
+
+        example
+        -------
+        >>> def SetValueFunc(self, data, row: int, col: int, value):
+        >>>     data[row][col] = value
+        """
+        ...
+
+    def GetValueFunc(self, data, row: int, col: int) -> str:
+        """
+        Override this method to get the value of the cell at the given row and
+        col. The returned value is expected to be a string.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        row : int
+            The row index of the cell.
+        col : int
+            The column index of the cell.
+
+        Returns
+        -------
+        str
+            The value of the cell as a string.
+
+        example
+        -------
+        >>> def GetValueFunc(self, data, row: int, col: int) -> str:
+        >>>     return str(data[row][col])
+        """
+        ...
+
+    def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
+        """
+        Override this method to delete the rows at the given position.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        pos : int
+            The starting row index to delete.
+        numRows : int, optional
+            The number of rows to delete. Default is 1.
+
+        Returns
+        -------
+        The modified data.
+
+        Notes
+        -----
+        The returned data must have the same structure as the input data.
+        
+        example
+        -------
+        >>> # if isinstance(data, list)
+        >>> def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
+        >>>     return data[:pos] + data[pos + numRows:]
+        >>>
+        >>> # if isinstance(data, ndarray)
+        >>> def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
+        >>>     return np.delete(data, list(range(pos, pos + numRows)), axis=0)
+        """
+        ...
+
+    def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
+        """
+        Override this method to insert the rows at the given position.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        pos : int
+            The starting row index to insert.
+        numRows : int, optional
+            The number of rows to insert. Default is 1.
+
+        Returns
+        -------
+        The modified data.
+
+        Notes
+        -----
+        The returned data must have the same structure as the input data.
+        
+        example
+        -------
+        >>> # if isinstance(data, list)
+        >>> def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
+        >>>     ncols = len(data[0])
+        >>>     empty = [[''] * ncols for _ in range(numRows)]
+        >>>     return data[:pos] + empty + data[pos:]
+        >>>
+        >>> # if isinstance(data, ndarray)
+        >>> def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
+        >>>     empty = np.array([[''] * data.shape[1] for _ in range(numRows)]) 
+        >>>     return np.insert(data, pos, empty, axis=0)
+        """
+        ...
+
+    def AppendRowsFunc(self, data, numRows: int = 1):
+        """
+        Override this method to append the specified number of rows to the data.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        numRows : int, optional
+            The number of rows to append. Default is 1.
+
+        Returns
+        -------
+        The modified data.
+
+        Notes
+        -----
+        The returned data must have the same structure as the input data.
+
+        example
+        -------
+        >>> # if isinstance(data, list)
+        >>> def AppendRowsFunc(self, data, numRows: int = 1):
+        >>>     ncols = len(data[0])
+        >>>     return data + [[''] * ncols for _ in range(numRows)]
+        >>>
+        >>> # if isinstance(data, ndarray)
+        >>> def AppendRowsFunc(self, data, numRows: int = 1):
+        >>>     empty = np.array([[''] * data.shape[1] for _ in range(numRows)])
+        >>>     return np.append(data, empty, axis=0)
+        """
+        ...
+
+    def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
+        """
+        Override this method to delete the specified number of columns from the data.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        pos : int
+            The starting column index to delete.
+        numCols : int, optional
+            The number of columns to delete. Default is 1.
+
+        Returns
+        -------
+        The modified data.
+
+        Notes
+        -----
+        The returned data must have the same structure as the input data.
+
+        example
+        -------
+        >>> # if isinstance(data, list)
+        >>> def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
+        >>>
+        >>>     def list_transpose(data):
+        >>>         return [list(i) for i in zip(*data)]
+        >>>
+        >>>     dat = list_transpose(data)
+        >>>     dat_ = dat[:pos] + dat[pos + numCols:]
+        >>>     return list_transpose(dat_)
+        >>>
+        >>> # if isinstance(data, ndarray)
+        >>> def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
+        >>>     return np.delete(data, list(range(pos, pos + numCols)), axis=1)
+        """
+        ...
+        ...
+
+    def InsertColsFunc(self, data, pos: int, numCols: int = 1):
+        """
+        Override this method to insert the specified number of columns into the data at the given position.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        pos : int
+            The starting column index to insert.
+        numCols : int, optional
+            The number of columns to insert. Default is 1.
+
+        Returns
+        -------
+        The modified data.
+
+        Notes
+        -----
+        The returned data must have the same structure as the input data.
+
+        example
+        -------
+        >>> # if isinstance(data, list)
+        >>> def InsertColsFunc(self, data, pos: int, numCols: int = 1):
+        >>>
+        >>>     def list_transpose(data):
+        >>>         return [list(i) for i in zip(*data)]
+        >>>
+        >>>     nrows = len(data)
+        >>>     empty = [[''] * nrows for _ in range(numCols)]
+        >>>     dat = list_transpose(data)
+        >>>     dat_ = dat[:pos] + empty + dat[pos:]
+        >>>     return list_transpose(dat_)
+        >>>
+        >>> # if isinstance(data, ndarray)
+        >>> def InsertColsFunc(self, data, pos: int, numCols: int = 1):
+        >>>     empty = np.array([[''] * data.shape[0] for _ in range(numCols)])
+        >>>     return np.insert(data, pos, empty, axis=1)
+        """
+        ...
+
+    def AppendColsFunc(self, data, numCols: int = 1):
+        """
+        Override this method to append the specified number of columns to the data.
+
+        Parameters
+        ----------
+        data : array-like
+            `self.data` will be passed here
+        numCols : int, optional
+            The number of columns to append. Default is 1.
+
+        Returns
+        -------
+        The modified data.
+
+        Notes
+        -----
+        The returned data must have the same structure as the input data.
+
+        example
+        -------
+        >>> # if isinstance(data, list)
+        >>> def AppendColsFunc(self, data, numCols: int = 1):
+        >>>
+        >>>     def list_transpose(data):
+        >>>         return [list(i) for i in zip(*data)]
+        >>>
+        >>>     nrows = len(data)
+        >>>     empty = [[''] * nrows for _ in range(numCols)]
+        >>>     dat = list_transpose(data)
+        >>>     return list_transpose(dat + empty)
+        >>>
+        >>> # if isinstance(data, ndarray)
+        >>> def AppendColsFunc(self, data, numCols: int = 1):
+        >>>     empty = np.array([[''] * data.shape[1] for _ in range(numCols)])
+        >>>     return np.append(data, empty, axis=0)
+        """
+        ...
+
+#endregion
+
+#region ProcessTableMessage
+
+    def ValuesUpdated(self) -> None:  # 更新数据
+        # print('GetValues')
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(
+                self, gridlib.GRIDTABLE_REQUEST_VIEW_GET_VALUES))
+
+    def RowsDeleted(self, pos: int, numRows: int) -> None:
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED,
+                                     pos, numRows))
+
+    def RowsAppended(self, numRows: int) -> None:
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED,
+                                     numRows))
+
+    def RowsInserted(self, pos: int, numRows: int) -> None:
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED,
+                                     pos, numRows))
+
+    def ColsDeleted(self, pos: int, numCols: int) -> None:
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_COLS_DELETED,
+                                     pos, numCols))
+
+    def ColsAppended(self, numCols: int) -> None:
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED,
+                                     numCols))
+
+    def ColsInserted(self, pos: int, numCols: int) -> None:
+        self.GetView().ProcessTableMessage(
+            gridlib.GridTableMessage(self,
+                                     gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED,
+                                     pos, numCols))
+
+
+#endregion
+
+    def GetValue(self, row: int, col: int) -> str:
+        """
+        Returns the value of the cell at the given row and col.
+
+        Parameters
+        ----------
+        row : int
+            The row index of the cell.
+        col : int
+            The column index of the cell.
+
+        Returns
+        -------
+        str
+            The value of the cell as a string.
+
+        Notes
+        -----
+        If the cell contains an error, the method returns an empty string.
+        """
         try:
-            assert self._func['GetValue'] is not None
-            return self._func['GetValue'](self.data, row, col)
+            return self.GetValueFunc(self.data, row, col)
         except:
             return ''
 
-    def SetData(self, data):
-        """替换整个数据集"""
+    def SetData(self, data) -> None:
+        """
+        Replaces the current dataset with the provided data and updates the grid accordingly.
+
+        This function first retrieves the current number of rows and columns in the dataset.
+        It then replaces the dataset by calling `SetDataFunc(data)` and updates the number
+        of rows and columns. If the number of rows or columns has changed, the function
+        sends the appropriate notifications to update the grid view.
+        """
         old_rows, old_cols = self.GetNumberRows(), self.GetNumberCols()
-        assert self._func['SetData'] is not None, 'not implement SetData'
-        self.data = self._func['SetData'](data)
+        self.data = self.SetDataFunc(data)
         new_rows, new_cols = self.GetNumberRows(), self.GetNumberCols()
         if old_rows > new_rows:
             self.RowsDeleted(0, old_rows - new_rows)
@@ -81,180 +472,360 @@ class DataBase(gridlib.GridTableBase):  # 基类
             self.ColsDeleted(0, old_cols - new_cols)
         elif old_cols < new_cols:
             self.ColsAppended(new_cols - old_cols)
-        self.ValuesGeted()
+        self.ValuesUpdated()
 
-    def SetDataValue(self, row: int, col: int, value):
-        """设置单个单元格的值"""
-        assert self._func['SetValue'] is not None, 'not implement SetValue'
-        self._func['SetValue'](self.data, row, col, value)
-        self.ValuesGeted()
+    def SetDataValue(self, row: int, col: int, value) -> None:
+        """
+        Set the value of the cell at the given row and col.
 
-    def SetValue(self, row: int, col: int, value):
-        # 从gui界面传入的value为str
+        Parameters
+        ----------
+        row : int
+            The row index of the cell.
+        col : int
+            The column index of the cell.
+        value: any
+            The value of the cell. This can be anything that can be
+            converted to a string.
+        
+        raises
+        ------
+        IndexError
+            If the row or col is out of range
+        """
+        self.SetValueFunc(self.data, row, col, value)
+        self.ValuesUpdated()
+
+    def SetValue(self, row: int, col: int, value) -> None:
+        """
+        Set the value of the cell at the given row and col.
+
+        If the row or col is out of range, the grid will be resized to
+        accommodate the new cell.
+
+        Parameters
+        ----------
+        row : int
+            The row index of the cell.
+        col : int
+            The column index of the cell.
+        value : str or any
+            The value of the cell. This can be anything that can be
+            converted to a string. If called from the GUI, this will be a string.
+        """
         nrows, ncols = self.GetNumberRows(), self.GetNumberCols()
         if col > ncols:
             self.AppendCols(col + 1 - ncols)
         if row > nrows:
             self.AppendRows(row + 1 - nrows)
-        assert self._func['SetValue'] is not None, 'not implement SetValue'
-        self._func['SetValue'](self.data, row, col, value)
-        self.ValuesGeted()
+        self.SetValueFunc(self.data, row, col, value)
+        self.ValuesUpdated()
 
-#region ProcessTableMessage
+    def SetRowLabels(self, rowlables: Iterable) -> None:
+        """
+        Set the row labels of the grid. The row labels are the values that
+        appear in the row header of the grid.
 
-    def ValuesGeted(self):
-        # print('GetValues')
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_REQUEST_VIEW_GET_VALUES))
+        Parameters
+        ----------
+        rowlables : Iterable
+            The values of the row labels. This can be any iterable of objects
+            that can be converted to a string.
 
-    def RowsDeleted(self, pos: int, numRows: int):
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED,
-                                     pos, numRows))
-
-    def RowsAppended(self, numRows: int):
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED,
-                                     numRows))
-
-    def RowsInserted(self, pos: int, numRows: int):
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED,
-                                     pos, numRows))
-
-    def ColsDeleted(self, pos: int, numCols: int):
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_COLS_DELETED,
-                                     pos, numCols))
-
-    def ColsAppended(self, numCols: int):
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED,
-                                     numCols))
-
-    def ColsInserted(self, pos: int, numCols: int):
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED,
-                                     pos, numCols))
-
-
-#endregion
-
-    def RowLabelRedrawed(self, row: int):
-        pass
-
-    def SetRowLabels(self, rowlables: Iterable):
+        Raises
+        ------
+        TypeError
+            If `rowlables` is not an iterable.
+        """
         if isinstance(rowlables, Iterable):
             raise TypeError('rowlables must be Iterable')
         self.rowlabels = [str(i) for i in rowlables]
 
-    def SetRowLabelValue(self, row: int, label: str):
-        if self.rowlabels is None:
-            return False
-        self.rowlabels[row] = label
-        return True
+    def SetRowLabelValue(self, row: int, label: str) -> bool:
+        """
+        Set the value of the row label at the given row index.
 
-    def GetRowLabelValue(self, row: int):
+        Parameters
+        ----------
+        row : int
+            The row index of the row label.
+        label : str
+            The value of the row label.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise. If `self.rowlabels` is None or
+            `label` is not a string, returns False.
+        """
+        if self.rowlabels is None:
+            print('rowlabels is None, cannot set row label')
+            return False
+        if isinstance(label, str):
+            self.rowlabels[row] = label
+            return True
+        print('label is not a string')
+        return False
+
+    def GetRowLabelValue(self, row: int) -> str:
+        """
+        Get the value of the row label at the given row index.
+
+        Parameters
+        ----------
+        row : int
+            The row index of the row label.
+
+        Returns
+        -------
+        str
+            The value of the row label. If `self.rowlabels` is None, returns the
+            result of calling the base class's GetRowLabelValue method.
+
+        """
         if self.rowlabels:
             return self.rowlabels[row]
         return super().GetRowLabelValue(row)
 
-    def SetColLabels(self, collabels: Iterable):
+    def SetColLabels(self, collabels: Iterable) -> None:
+        """
+        Set the column labels of the grid. The column labels are the values that
+        appear in the column header of the grid.
+
+        Parameters
+        ----------
+        collabels : Iterable
+            The values of the column labels. This can be any iterable of objects
+            that can be converted to a string.
+
+        Raises
+        ------
+        TypeError
+            If `collabels` is not an iterable.
+        """
         if isinstance(collabels, Iterable):
             raise TypeError('collabels must be Iterable')
         self.collabels = [str(i) for i in collabels]
 
-    def SetColLabelValue(self, col: int, label: str):
-        if self.collabels is None:
-            return False
-        self.collabels[col] = label
-        return True
+    def SetColLabelValue(self, col: int, label: str) -> bool:
+        """
+        Set the value of the column label at the given column index.
 
-    def GetColLabelValue(self, col: int):
+        Parameters
+        ----------
+        col : int
+            The column index of the column label.
+        label : str
+            The value of the column label.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise. If `self.collabels` is None or
+            `label` is not a string, returns False.
+        """
+        if self.collabels is None:
+            print('collabels is None, cannot set column label')
+            return False
+        if isinstance(label, str):
+            self.collabels[col] = label
+            return True
+        print('label is not a string')
+        return False
+
+    def GetColLabelValue(self, col: int) -> str:
+        """
+        Get the value of the column label at the given column index.
+
+        Parameters
+        ----------
+        col : int
+            The column index of the column label.
+
+        Returns
+        -------
+        str
+            The value of the column label. If `self.collabels` is None, returns the
+            result of calling the base class's GetColLabelValue method.
+        """
         if self.collabels:
             return self.collabels[col]
         return super().GetColLabelValue(col)
 
-    def IsEmptyCell(self, row: int, col: int):
+    def IsEmptyCell(self, row: int, col: int) -> bool:
+        """
+        Check if the cell at the given row and column index is empty.
+
+        Parameters
+        ----------
+        row : int
+            The row index of the cell.
+        col : int
+            The column index of the cell.
+
+        Returns
+        -------
+        bool
+            True if the cell is empty, False otherwise. A cell is considered
+            empty if it is either None or a string that is empty.
+        """
         item = self.GetValue(row, col)
         return item == '' or item is None
 
-    def DeleteRows(self, pos: int, numRows: int = 1):
-        func = self._func['DeleteRows']
-        assert func is not None, 'not implement DeleteRows'
+    def DeleteRows(self, pos: int, numRows: int = 1) -> bool:
+        """
+        Delete the rows at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting row index to delete.
+        numRows : int, optional
+            The number of rows to delete. Default is 1.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+        """
         try:
-            self.data = func(self.data, pos, numRows)
+            self.data = self.DeleteRowsFunc(self.data, pos, numRows)
             self.RowsDeleted(pos, numRows)
             return True
         except Exception as e:
             print(e)
             return False
 
-    def DeleteCols(self, pos: int, numCols: int = 1):
-        func = self._func['DeleteCols']
-        assert func is not None, 'not implement DeleteCols'
+    def DeleteCols(self, pos: int, numCols: int = 1) -> bool:
+        """
+        Delete the columns at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting column index to delete.
+        numCols : int, optional
+            The number of columns to delete. Default is 1.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+        """
         try:
-            self.data = func(self.data, pos, numCols)
+            self.data = self.DeleteColsFunc(self.data, pos, numCols)
             self.ColsDeleted(pos, numCols)
             return True
         except Exception as e:
             print(e)
             return False
 
-    def AppendRows(self, numRows: int = 1):
-        func = self._func['AppendRows']
-        assert func is not None, 'not implement AppendRows'
+    def AppendRows(self, numRows: int = 1) -> bool:
+        """
+        Append the specified number of rows to the table.
+
+        Parameters
+        ----------
+        numRows : int, optional
+            The number of rows to append. Default is 1.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+        """
         try:
-            self.data = func(self.data, numRows)
+            self.data = self.AppendRowsFunc(self.data, numRows)
             self.RowsAppended(numRows)
-            self.ValuesGeted()
+            self.ValuesUpdated()
             return True
         except Exception as e:
             print(e)
             return False
 
-    def AppendCols(self, numCols: int = 1):
-        func = self._func['AppendCols']
-        assert func is not None, 'not implement AppendCols'
+    def AppendCols(self, numCols: int = 1) -> bool:
+        """
+        Append the specified number of columns to the table.
+
+        Parameters
+        ----------
+        numCols : int, optional
+            The number of columns to append. Default is 1.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+        """
         try:
-            self.data = func(self.data, numCols)
+            self.data = self.AppendColsFunc(self.data, numCols)
             self.ColsAppended(numCols)
-            self.ValuesGeted()
+            self.ValuesUpdated()
             return True
         except Exception as e:
             print(e)
             return False
 
-    def InsertRows(self, pos: int, numRows: int = 1):
-        func = self._func['InsertRows']
-        assert func is not None, 'not implement AppendCols'
-        try:
-            self.data = func(self.data, pos, numRows)
-            self.RowsInserted(pos, numRows)
-            self.ValuesGeted()
-            return True
-        except Exception as e:
-            print(e)
-            return False
+    def InsertCols(self, pos: int, numCols: int = 1) -> bool:
+        """
+        Insert the specified number of columns at the given position.
 
-    def InsertCols(self, pos: int, numCols: int = 1):
-        func = self._func['InsertCols']
-        assert func is not None, 'not implement AppendCols'
+        Parameters
+        ----------
+        pos : int
+            The starting column index to insert.
+        numCols : int, optional
+            The number of columns to insert. Default is 1.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+        """
         try:
-            self.data = func(self.data, pos, numCols)
+            self.data = self.InsertColsFunc(self.data, pos, numCols)
             self.ColsInserted(pos, numCols)
-            self.ValuesGeted()
+            self.ValuesUpdated()
             return True
         except Exception as e:
             print(e)
             return False
+
+    def InsertRows(self, pos: int, numRows: int = 1) -> bool:
+        """
+        Insert the specified number of rows at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting row index to insert.
+        numRows : int, optional
+            The number of rows to insert. Default is 1.
+
+        Returns
+        -------
+        bool
+            True if successful, False otherwise.
+        """
+        try:
+            self.data = self.InsertRowsFunc(self.data, pos, numRows)
+            self.RowsInserted(pos, numRows)
+            self.ValuesUpdated()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def Clear(self) -> None:
+        """
+        Clear the data in the grid.
+
+        This method sets the data to a fresh empty array of the same shape as the current data.
+        It then calls ValuesUpdated to notify the grid that the data has changed.
+        """
+        self.data = self.SetDataFunc(build_empty(self.GetNumberRows(), self.GetNumberCols()))
+        self.ValuesUpdated()
+
 
 COPY = 'Copy'
 PASTE = 'Paste'
@@ -285,19 +856,19 @@ class GridBase(gridlib.Grid):
         (DELETE_COLS, '删除列')
     )
 
-    def __init__(self,
-                 parent,
-                 dataBase: DataBase,  # 需要实现DataBase
-                 id=wx.ID_ANY,
-                 pos=wx.DefaultPosition,
-                 size=wx.DefaultSize,
-                 style=wx.WANTS_CHARS,
-                 name='HGridBase') -> None:
+    def __init__(
+            self,
+            parent,
+            dataBase: DataBase,  # 需要实现DataBase
+            id=wx.ID_ANY,
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=wx.WANTS_CHARS,
+            name='HGridBase') -> None:
         super().__init__(parent, id, pos, size, style, name)
         self.dataBase = dataBase
         self.SetTable(self.dataBase, True)
-        self._selected_range: Tuple[Tuple[int, int], Tuple[int, int]] = ((0, 0), (0, 0))
-        self._menu_event()
+        self._init_menu()
 
         font0 = wx.Font(*FONT0)
 
@@ -314,10 +885,12 @@ class GridBase(gridlib.Grid):
         self.dataBase.SetData(data)
         self.ForceRefresh()
 
-    def _menu_event(self):
+    def _init_menu(self):
         # 创建一个右键菜单
         self.popupmenu = wx.Menu()
         # 绑定左键选择事件 获取选中区域
+        self._selected_range: Tuple[Tuple[int, int],
+                                    Tuple[int, int]] = ((0, 0), (0, 0))
         self.Bind(gridlib.EVT_GRID_RANGE_SELECT, self._OnRangeSelect)
         self.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK, self._OnLeftClick)
         # 绑定右键菜单事件
@@ -340,8 +913,8 @@ class GridBase(gridlib.Grid):
     def _OnRangeSelect(self, event):
         # 当选择区域变化时，保存新的选定区域
         if event.Selecting():
-            self._selected_range: Tuple[Tuple[int, int], Tuple[int, int]] = (
-                event.GetTopLeftCoords(), event.GetBottomRightCoords())
+            self._selected_range = (event.GetTopLeftCoords(),
+                                    event.GetBottomRightCoords())
         # else:
         #     self._selected_range = None
 
@@ -351,7 +924,7 @@ class GridBase(gridlib.Grid):
         col: int = event.GetCol()
         self._selected_range = ((row, col), (row, col))
         event.Skip()
-        # print(row, col)
+        # print(self._selected_range)
 
     def _OnKeyDown(self, event: wx.KeyEvent):
         key_code = event.GetKeyCode()  # 获取按键编码
@@ -378,20 +951,22 @@ class GridBase(gridlib.Grid):
         # 获取被点击的行和列
         row: int = event.GetRow()
         col: int = event.GetCol()
+
         # print(f"右键点击了第{row}行，第{col}列")
-        # 检查是否有选定的区域
-        if self._selected_range:
-            top_left, bottom_right = self._selected_range
-            if row < top_left[0] or row > bottom_right[0] or col < top_left[
-                    1] or col > bottom_right[1]:
-                self.SelectBlock(row, col, row, col)
-                self._selected_range = ((row, col), (row, col))
-            # print(f"之前选定的区域从第{top_left[0]}行，第{top_left[1]}列到第{bottom_right[0]}行，第{bottom_right[1]}列")
-            # self.SelectBlock(top_left[0], top_left[1], bottom_right[0], bottom_right[1])
-        else:
-            # print("没有之前选定的区域")
+
+        def set_selected():  # 将点击的单元格作为新的选定区域
             self.SelectBlock(row, col, row, col)
             self._selected_range = ((row, col), (row, col))
+
+        if self._selected_range:
+            top_left, bottom_right = self._selected_range
+            if (row < top_left[0] or row > bottom_right[0] or col < top_left[1]
+                    or col > bottom_right[1]):  # 如果点击的单元格不在 _selected_range 内
+                set_selected()
+            # print(f"之前选定的区域从第{top_left[0]}行，第{top_left[1]}列到第{bottom_right[0]}行，第{bottom_right[1]}列")
+        else:
+            # print("没有之前选定的区域")
+            set_selected()
 
         self.PopupMenu(self.popupmenu, event.GetPosition())
 
@@ -404,7 +979,7 @@ class GridBase(gridlib.Grid):
         # print(top_left)
         # print(bottom_right)
         lst = self.dataBase.data[top_left[0]:bottom_right[0] + 1]
-        lst_ = (map(str, it[top_left[1]:bottom_right[1] + 1]) for it in lst)
+        lst_ = [map(str, it[top_left[1]:bottom_right[1] + 1]) for it in lst]
         text = '\n'.join(['\t'.join(i) for i in lst_])
         # 复制到剪切板
         if wx.TheClipboard.Open():
@@ -439,7 +1014,7 @@ class GridBase(gridlib.Grid):
             for i in range(len(ls1)):
                 for j in range(len(ls1[i])):
                     self.dataBase.data[i + x][j + y] = ls1[i][j]
-            self.dataBase.ValuesGeted()  # 通知数据已经更新
+            self.dataBase.ValuesUpdated()  # 通知数据已经更新
             # self.AutoSizeRows()
             self.ForceRefresh()
 
@@ -485,7 +1060,7 @@ class GridBase(gridlib.Grid):
         for i in range(top_left[0], bottom_right[0] + 1):
             for j in range(top_left[1], bottom_right[1] + 1):
                 self.dataBase.data[i][j] = ''
-        self.dataBase.ValuesGeted()
+        self.dataBase.ValuesUpdated()
         self.ForceRefresh()
 
     def _OnDeleteRows(self, event):
@@ -498,11 +1073,27 @@ class GridBase(gridlib.Grid):
         num = bottom_right[1] - top_left[1] + 1
         self.dataBase.DeleteCols(top_left[1], num)
 
+
 #endregion
 
 #tag 实现并覆盖内部方法
 
     def AppendCols(self, numCols: int = 1, updateLabels: bool = True):
+        """
+        Append the specified number of columns to the grid.
+
+        Parameters
+        ----------
+        numCols : int, optional
+            The number of columns to append. Default is 1.
+        updateLabels : bool, optional
+            If True, refreshes the grid labels after appending columns. Default is True.
+
+        Returns
+        -------
+        bool
+            True if the columns were successfully appended, False otherwise.
+        """
         b = self.dataBase.AppendCols(numCols)
         # self.AutoSizeRows()
         if updateLabels:
@@ -510,6 +1101,21 @@ class GridBase(gridlib.Grid):
         return b
 
     def AppendRows(self, numRows: int = 1, updateLabels: int = True):
+        """
+        Append the specified number of rows to the grid.
+
+        Parameters
+        ----------
+        numRows : int, optional
+            The number of rows to append. Default is 1.
+        updateLabels : bool, optional
+            If True, refreshes the grid labels after appending rows. Default is True.
+
+        Returns
+        -------
+        bool
+            True if the rows were successfully appended, False otherwise.
+        """
         b = self.dataBase.AppendRows(numRows)
         # self.AutoSizeRows()
         if updateLabels:
@@ -520,6 +1126,23 @@ class GridBase(gridlib.Grid):
                    pos: int,
                    numCols: int = 1,
                    updateLabels: bool = True):
+        """
+        Insert the specified number of columns at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting column index to insert.
+        numCols : int, optional
+            The number of columns to insert. Default is 1.
+        updateLabels : bool, optional
+            If True, refreshes the grid labels after inserting columns. Default is True.
+
+        Returns
+        -------
+        bool
+            True if the columns were successfully inserted, False otherwise.
+        """
         b = self.dataBase.InsertCols(pos, numCols)
         # self.AutoSizeRows()
         if updateLabels:
@@ -530,6 +1153,23 @@ class GridBase(gridlib.Grid):
                    pos: int,
                    numRows: int = 1,
                    updateLabels: bool = True):
+        """
+        Insert the specified number of rows at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting row index to insert.
+        numRows : int, optional
+            The number of rows to insert. Default is 1.
+        updateLabels : bool, optional
+            If True, refreshes the grid labels after inserting rows. Default is True.
+
+        Returns
+        -------
+        bool
+            True if the rows were successfully inserted, False otherwise.
+        """
         b = self.dataBase.InsertRows(pos, numRows)
         # self.AutoSizeRows()
         if updateLabels:
@@ -540,6 +1180,24 @@ class GridBase(gridlib.Grid):
                    pos: int,
                    numCols: int = 1,
                    updateLabels: bool = True):
+        """
+        Delete the columns at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting column index to delete.
+        numCols : int, optional
+            The number of columns to delete. Default is 1.
+        updateLabels : bool, optional
+            If True, refreshes the grid labels after deleting columns. Default is True.
+
+        Returns
+        -------
+        bool
+            True if the columns were successfully deleted, False otherwise.
+        """
+
         b = self.dataBase.DeleteCols(pos, numCols)
         if updateLabels:
             self.ForceRefresh()
@@ -549,6 +1207,24 @@ class GridBase(gridlib.Grid):
                    pos: int,
                    numRows: int = 1,
                    updateLabels: bool = True):
+        """
+        Delete the rows at the given position.
+
+        Parameters
+        ----------
+        pos : int
+            The starting row index to delete.
+        numRows : int, optional
+            The number of rows to delete. Default is 1.
+        updateLabels : bool, optional
+            If True, refreshes the grid labels after deleting rows. Default is True.
+
+        Returns
+        -------
+        bool
+            True if the rows were successfully deleted, False otherwise.
+        """
+
         b = self.dataBase.DeleteRows(pos, numRows)
         if updateLabels:
             self.ForceRefresh()

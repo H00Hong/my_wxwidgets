@@ -21,47 +21,6 @@ def list_transpose(x: List[list]):
     return [list(i) for i in zip(*x)]
 
 
-def _delete_rows(data: List[list], pos: int, numRows: int):
-    return data[:pos] + data[pos + numRows:]
-
-
-def _delete_cols(data: List[list], pos: int, numCols: int):
-    dat = list_transpose(data)
-    dat_ = dat[:pos] + dat[pos + numCols:]
-    return list_transpose(dat_)
-
-
-def _append_rows(data: List[list], numRows: int):
-    ncols = len(data[0])
-    data += build_empty(numRows, ncols)
-    return data
-
-
-def _append_cols(data: List[list], numCols: int):
-    nrows = len(data)
-    lst = build_empty(numCols, nrows)
-    dat = list_transpose(data)
-    return list_transpose(dat + lst)
-
-
-def _insert_rows(data: List[list], pos: int, numRows: int = 1):
-    ncols = len(data[0])
-    lst = build_empty(numRows, ncols)
-    return data[:pos] + lst + data[pos:]
-
-
-def _insert_cols(data: List[list], pos: int, numCols: int = 1):
-    nrows = len(data)
-    lst = build_empty(numCols, nrows)
-    dat = list_transpose(data)
-    dat_ = dat[:pos] + lst + dat[pos:]
-    return list_transpose(dat_)
-
-
-def _set_value(data: List[list], row: int, col: int, value):
-    data[row][col] = value
-
-
 class DataBaseList(DataBase):
     """
     
@@ -69,52 +28,75 @@ class DataBaseList(DataBase):
 
     def __init__(self,
                  data: Union[List[list], list, Tuple[int, ...], None] = None,
-                 rowLables: Union[List[str], None] = None,
-                 colLabels: Union[List[str], None] = None) -> None:
-        gridlib.GridTableBase.__init__(self)
+                 rowlabels: Union[List[str], None] = None,
+                 collabels: Union[List[str], None] = None) -> None:
+        DataBase.__init__(self)
         if data is None:
             data = (3, 3)
         if isinstance(data, tuple):
             data = build_empty(*data)
-        data = self._check_list(data)
-        self.data = data
-        self.rowlabels = rowLables
-        self.collabels = colLabels
+        self.data = self.SetDataFunc(data)
+        if rowlabels is None:
+            self.rowlabels = None
+        else:
+            self.SetRowLabels(rowlabels)
+        if collabels is None:
+            self.collabels = None
+        else:
+            self.SetColLabels(collabels)
 
-        self._func['DeleteRows'] = _delete_rows
-        self._func['DeleteCols'] = _delete_cols
-        self._func['AppendRows'] = _append_rows
-        self._func['AppendCols'] = _append_cols
-        self._func['InsertRows'] = _insert_rows
-        self._func['InsertCols'] = _insert_cols
-        self._func['SetData'] = self._check_list
-        self._func['GetValue'] = lambda data, row, col: data[row][col]
-        self._func['SetValue'] = _set_value
-
-    def _check_list(self, lst):
-        if not isinstance(lst, list):
-            raise TypeError('DataBaseList\'s data type must be list')
-        if all([isinstance(i, str) for i in lst]):
-            return [lst]
-        if all([isinstance(i, list) for i in lst]):
-            if all([all([isinstance(j, str) for j in i]) for i in lst]):
-                return lst
-        raise TypeError(
-            'DataBaseList\'s data type must be list[list[str]] or list[str]')
-
-    def GetNumberRows(self):
+    def GetNumberRows(self) -> int:
         return len(self.data)
 
-    def GetNumberCols(self):
+    def GetNumberCols(self) -> int:
         return len(self.data[0])
 
-    def IsEmptyCell(self, row, col):
-        item = self.GetValue(row, col)
-        return item == '' or item is None
+    def SetDataFunc(self, lst):
+        if not isinstance(lst, list):
+            raise TypeError('DataBaseList\'s data type must be list')
+        b = [isinstance(i, list) for i in lst]
+        if all(b):
+            return lst
+        elif all([not i for i in b]):
+            return [lst]
+        else:
+            raise TypeError('DataBaseList\'s data type must be list[list]')
 
-    def Clear(self):
-        self.data = build_empty(self.GetNumberRows(), self.GetNumberCols())
-        self.ValuesGeted()
+    def GetValueFunc(self, data: List[list], row: int, col: int):
+        return str(data[row][col])
+
+    def SetValueFunc(self, data: List[list], row: int, col: int, value) -> None:
+        data[row][col] = value
+
+    def DeleteRowsFunc(self, data: List[list], pos: int, numRows: int = 1):
+        return data[:pos] + data[pos + numRows:]
+
+    def DeleteColsFunc(self, data: List[list], pos: int, numCols: int = 1):
+        dat = list_transpose(data)
+        dat_ = dat[:pos] + dat[pos + numCols:]
+        return list_transpose(dat_)
+
+    def AppendRowsFunc(self, data: List[list], numRows: int = 1):
+        ncols = len(data[0])
+        return data + build_empty(numRows, ncols)
+
+    def AppendColsFunc(self, data: List[list], numCols: int = 1):
+        nrows = len(data)
+        lst = build_empty(numCols, nrows)
+        dat = list_transpose(data)
+        return list_transpose(dat + lst)
+
+    def InsertRowsFunc(self, data: List[list], pos: int, numRows: int = 1):
+        ncols = len(data[0])
+        lst = build_empty(numRows, ncols)
+        return data[:pos] + lst + data[pos:]
+
+    def InsertColsFunc(self, data: List[list], pos: int, numCols: int = 1):
+        nrows = len(data)
+        lst = build_empty(numCols, nrows)
+        dat = list_transpose(data)
+        dat_ = dat[:pos] + lst + dat[pos:]
+        return list_transpose(dat_)
 
 
 class Grid(GridBase):
@@ -257,23 +239,4 @@ class GridWithHeader(wx.Panel):
         self.subject.dataBase.SetColLabels(labels)
 
 
-if __name__ == '__main__':
-
-    app = wx.App()
-    frame = wx.Frame(None, -1, '测试', size=(400, 400))
-    grid = GridWithHeader(frame, (10, 10))
-    grid.SetHeaderLabels(['a'])
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
-    but = wx.Button(frame, -1, 'test')
-    sizer.Add(but, 0, wx.EXPAND | wx.ALL, 5)
-    frame.SetSizer(sizer)
-
-    def on_click(event):
-        grid.SetSubject([[1, 2, 3], [4, 5, 6]])
-        grid.SetHeader(['a', 'b', 'c'])
-
-    but.Bind(wx.EVT_BUTTON, on_click)
-
-    frame.Show()
-    app.MainLoop()
+__all__= ['DataBaseList', 'GridWithHeader', 'Grid', 'gridlib']
