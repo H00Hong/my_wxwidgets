@@ -6,14 +6,14 @@ import wx.grid as gridlib
 import os.path, sys
 
 sys.path.append(os.path.split(os.path.dirname(__file__))[0])
-from mywxwidgets.grid import GridNumpy, GridList
+from mywxwidgets.grid import gridnumpy, gridlist
 
 
 class Main(wx.Frame):
 
     def __init__(self):
         super().__init__(None, title='测试', size=(400, 400))
-        self.grid = GridNumpy.GridWithHeader(self, (10, 10))
+        self.grid = gridnumpy.GridWithHeader(self, (10, 10))
         self.grid.SetHeaderLabels(['a'])
 
         self.btn1 = wx.Button(self, label='set table')
