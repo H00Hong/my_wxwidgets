@@ -110,14 +110,14 @@ class Grid(GridBase):
     def __init__(self,
                  parent,
                  data: Union[List[list], tuple, None] = None,
-                 data_type: Literal['object', 'str'] = 'object',
+                 data_len: int = 10,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
                  name=gridlib.GridNameStr) -> None:
         super().__init__(parent, 
-                         DataBaseChararray(data, data_type), 
+                         DataBaseChararray(data, data_len), 
                          id, pos, size, 
                          style, name)
         # self.HideRowLabels()
