@@ -9,10 +9,10 @@ sys.path.append(os.path.split(os.path.dirname(__file__))[0])
 from mywxwidgets.grid import gridnumpy, gridlist
 
 
-class Main(wx.Frame):
+class Test(wx.Frame):
 
     def __init__(self):
-        super().__init__(None, title='测试', size=(600, 400))
+        wx.Frame.__init__(self, None, title='测试', size=(600, 400))
         self.grid_l = gridnumpy.GridWithHeader(self, (10, 10))
         self.grid_l.SetHeaderLabels(['a'])
         self.grid_r = gridlist.GridWithHeader(self, (10, 10))
@@ -35,15 +35,20 @@ class Main(wx.Frame):
         layout_l.Add(self.grid_l, 1, wx.EXPAND | wx.ALL, 5)
         layout_l.Add(self.btn1_l, 0, wx.EXPAND | wx.ALL, 5)
         layout_l.Add(self.btn2_l, 0, wx.EXPAND | wx.ALL, 5)
+
         layout_r = wx.BoxSizer(wx.VERTICAL)
         layout_r.Add(lab_r, 0, wx.EXPAND | wx.ALL, 5)
         layout_r.Add(self.grid_r, 1, wx.EXPAND | wx.ALL, 5)
         layout_r.Add(self.btn1_r, 0, wx.EXPAND | wx.ALL, 5)
         layout_r.Add(self.btn2_r, 0, wx.EXPAND | wx.ALL, 5)
+
         layout = wx.BoxSizer(wx.HORIZONTAL)
-        layout.Add(layout_l, 1, wx.EXPAND | wx.ALL, 5)
-        layout.Add(layout_r, 1, wx.EXPAND | wx.ALL, 5)
+        layout.Add(layout_l, 1, wx.EXPAND)
+        layout.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.EXPAND)
+        layout.Add(layout_r, 1, wx.EXPAND)
         self.SetSizer(layout)
+
+        self.SetBackgroundColour((230, 230, 230))
         self.Center()
 
     def _on_set_l(self, event):
@@ -58,7 +63,7 @@ class Main(wx.Frame):
         print(self.grid_l.subject.dataBase.data)
 
     def _on_set_r(self, event):
-        self.grid_r.SetSubject(np.random.rand(10, 10).round(3))
+        self.grid_r.SetSubject(np.random.rand(10, 10).round(3).tolist())
         self.grid_r.SetHeader([[f'R{i}' for i in range(10)]])
 
     def _on_print_r(self, event):
@@ -71,6 +76,6 @@ class Main(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App()
-    frame = Main()
+    frame = Test()
     frame.Show()
     app.MainLoop()
