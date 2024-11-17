@@ -1233,3 +1233,9 @@ class GridBase(gridlib.Grid):
         if updateLabels:
             self.ForceRefresh()
         return b
+
+__all__ = [
+    'DataBase', 'GridBase', 'build_empty', 'COPY', 'PASTE', 'CUT', 'INSERT_UP',
+    'INSERT_DOWN', 'INSERT_LEFT', 'INSERT_RIGHT', 'DELETE_VALUE',
+    'DELETE_ROWS', 'DELETE_COLS', 'gridlib'
+]

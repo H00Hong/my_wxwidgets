@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-from .GridBase import *
-from . import GridList, GridNumpy
+from .gridbase import *
+from . import gridlist, gridnumpy
