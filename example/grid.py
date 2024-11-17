@@ -12,31 +12,61 @@ from mywxwidgets.grid import gridnumpy, gridlist
 class Main(wx.Frame):
 
     def __init__(self):
-        super().__init__(None, title='测试', size=(400, 400))
-        self.grid = gridnumpy.GridWithHeader(self, (10, 10))
-        self.grid.SetHeaderLabels(['a'])
+        super().__init__(None, title='测试', size=(600, 400))
+        self.grid_l = gridnumpy.GridWithHeader(self, (10, 10))
+        self.grid_l.SetHeaderLabels(['a'])
+        self.grid_r = gridlist.GridWithHeader(self, (10, 10))
+        self.grid_r.SetHeaderLabels(['b'])
 
-        self.btn1 = wx.Button(self, label='set table')
-        self.btn1.Bind(wx.EVT_BUTTON, self._on_set)
-        self.btn2 = wx.Button(self, label='print table')
-        self.btn2.Bind(wx.EVT_BUTTON, self._on_print)
+        lab_l = wx.StaticText(self, label='left')
+        self.btn1_l = wx.Button(self, label='set table')
+        self.btn1_l.Bind(wx.EVT_BUTTON, self._on_set_l)
+        self.btn2_l = wx.Button(self, label='print table')
+        self.btn2_l.Bind(wx.EVT_BUTTON, self._on_print_l)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.grid, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(self.btn1, 0, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(self.btn2, 0, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(sizer)
+        lab_r = wx.StaticText(self, label='right')
+        self.btn1_r = wx.Button(self, label='set table')
+        self.btn1_r.Bind(wx.EVT_BUTTON, self._on_set_r)
+        self.btn2_r = wx.Button(self, label='print table')
+        self.btn2_r.Bind(wx.EVT_BUTTON, self._on_print_r)
 
-    def _on_set(self, event):
-        self.grid.SetSubject(np.random.rand(10, 10).round(3))
-        self.grid.SetHeader([[f'L{i}' for i in range(10)]])
+        layout_l = wx.BoxSizer(wx.VERTICAL)
+        layout_l.Add(lab_l, 0, wx.EXPAND | wx.ALL, 5)
+        layout_l.Add(self.grid_l, 1, wx.EXPAND | wx.ALL, 5)
+        layout_l.Add(self.btn1_l, 0, wx.EXPAND | wx.ALL, 5)
+        layout_l.Add(self.btn2_l, 0, wx.EXPAND | wx.ALL, 5)
+        layout_r = wx.BoxSizer(wx.VERTICAL)
+        layout_r.Add(lab_r, 0, wx.EXPAND | wx.ALL, 5)
+        layout_r.Add(self.grid_r, 1, wx.EXPAND | wx.ALL, 5)
+        layout_r.Add(self.btn1_r, 0, wx.EXPAND | wx.ALL, 5)
+        layout_r.Add(self.btn2_r, 0, wx.EXPAND | wx.ALL, 5)
+        layout = wx.BoxSizer(wx.HORIZONTAL)
+        layout.Add(layout_l, 1, wx.EXPAND | wx.ALL, 5)
+        layout.Add(layout_r, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizer(layout)
+        self.Center()
 
-    def _on_print(self, event):
+    def _on_set_l(self, event):
+        self.grid_l.SetSubject(np.random.rand(10, 10).round(3))
+        self.grid_l.SetHeader([[f'L{i}' for i in range(10)]])
+
+    def _on_print_l(self, event):
         print('-' * 10)
         print('header:')
-        print(self.grid.header.dataBase.data)
+        print(self.grid_l.header.dataBase.data)
         print('subject:')
-        print(self.grid.subject.dataBase.data)
+        print(self.grid_l.subject.dataBase.data)
+
+    def _on_set_r(self, event):
+        self.grid_r.SetSubject(np.random.rand(10, 10).round(3))
+        self.grid_r.SetHeader([[f'R{i}' for i in range(10)]])
+
+    def _on_print_r(self, event):
+        print('-' * 10)
+        print('header:')
+        print(self.grid_r.header.dataBase.data)
+        print('subject:')
+        print(self.grid_r.subject.dataBase.data)
 
 
 if __name__ == '__main__':

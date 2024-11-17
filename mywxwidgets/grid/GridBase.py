@@ -46,7 +46,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
             if not (hasattr(_cls, method) and callable(getattr(_cls, method))
                     and getattr(DataBase, method, None) != getattr(
                         _cls, method)):
-                raise NotImplementedError(f'not implement {method}')
+                raise NotImplementedError(f'{self.__class__}: not implement {method}')
 
 #region abstractmethod
 
@@ -541,8 +541,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         TypeError
             If `rowlables` is not an iterable.
         """
-        if isinstance(rowlables, Iterable):
-            raise TypeError('rowlables must be Iterable')
+        if not isinstance(rowlables, Iterable):
+            raise TypeError(f'{self.__class__}: rowlables must be Iterable')
         self.rowlabels = [str(i) for i in rowlables]
 
     def SetRowLabelValue(self, row: int, label: str) -> bool:
@@ -563,12 +563,12 @@ class DataBase(gridlib.GridTableBase):  # 基类
             `label` is not a string, returns False.
         """
         if self.rowlabels is None:
-            print('rowlabels is None, cannot set row label')
+            print(f'{self.__class__}: rowlabels is None, cannot set row label')
             return False
         if isinstance(label, str):
             self.rowlabels[row] = label
             return True
-        print('label is not a string')
+        print(f'{self.__class__}: label is not a string')
         return False
 
     def GetRowLabelValue(self, row: int) -> str:
@@ -607,8 +607,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         TypeError
             If `collabels` is not an iterable.
         """
-        if isinstance(collabels, Iterable):
-            raise TypeError('collabels must be Iterable')
+        if not isinstance(collabels, Iterable):
+            raise TypeError(f'{self.__class__}: collabels must be Iterable')
         self.collabels = [str(i) for i in collabels]
 
     def SetColLabelValue(self, col: int, label: str) -> bool:
@@ -629,12 +629,12 @@ class DataBase(gridlib.GridTableBase):  # 基类
             `label` is not a string, returns False.
         """
         if self.collabels is None:
-            print('collabels is None, cannot set column label')
+            print(f'{self.__class__}: collabels is None, cannot set column label')
             return False
         if isinstance(label, str):
             self.collabels[col] = label
             return True
-        print('label is not a string')
+        print(f'{self.__class__}: label is not a string')
         return False
 
     def GetColLabelValue(self, col: int) -> str:

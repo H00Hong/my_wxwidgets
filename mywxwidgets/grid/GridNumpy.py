@@ -32,11 +32,13 @@ class DataBaseChararray(DataBase):
         if data is None:
             data = (3, 3)
         if isinstance(data, tuple):
+            if len(data) != 2:
+                raise ValueError(f'{self.__class__}: The length of the tuple must be 2')
             data = build_empty(*data)
         if not isinstance(str_len, int):
-            raise TypeError('str_len must be int')
+            raise TypeError(f'{self.__class__}: str_len must be int')
         if str_len < 1:
-            raise ValueError('str_len must > 0')
+            raise ValueError(f'{self.__class__}: str_len must > 0')
         data = asarray(data, str)
         dtype = data.dtype
         slen = dtype.itemsize // dtype.alignment
@@ -63,7 +65,7 @@ class DataBaseChararray(DataBase):
         elif arr.ndim == 2:
             return arr
         else:
-            raise ValueError('The `ndim` of the input array must <= 2')
+            raise ValueError(f'{self.__class__}: The `ndim` of the input array must <= 2')
 
     def GetNumberRows(self) -> int:
         return self.data.shape[0]

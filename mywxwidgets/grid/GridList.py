@@ -53,7 +53,7 @@ class DataBaseList(DataBase):
 
     def SetDataFunc(self, lst) -> List[list]:
         if not isinstance(lst, list):
-            raise TypeError('DataBaseList\'s data type must be list')
+            raise TypeError(f'{self.__class__}: data type must be list')
         b = [isinstance(i, list) for i in lst]
         if all(b):
             if len(set([len(i) for i in lst])) != 1:
@@ -62,7 +62,7 @@ class DataBaseList(DataBase):
         elif all([not i for i in b]):
             return [lst]
         else:
-            raise TypeError('DataBaseList\'s data type must be list[list]')
+            raise TypeError(f'{self.__class__}: data type must be list[list]')
 
     def GetValueFunc(self, data: List[list], row: int, col: int):
         return str(data[row][col])
@@ -116,13 +116,6 @@ class Grid(GridBase):
         # self.HideRowLabels()
         # self.HideColLabels()
 
-    def SetData(self, data: list):
-        if not isinstance(data, list):
-            raise ValueError('HGrid_list.SetData: data 数据类型不支持')
-        # if not isinstance(data[0], list):
-        #     data = [data]
-        super().SetData(data)
-
 
 class GridWithHeader(wx.Panel):
 
@@ -144,7 +137,7 @@ class GridWithHeader(wx.Panel):
             elif isinstance(subject, list):
                 header = (1, len(subject[0]))
             else:
-                raise TypeError('GridWithHeader: subject 数据类型不支持')
+                raise TypeError(f'{self.__class__}: subject 数据类型不支持')
         self.header = Grid(self, header)
         self.subject = Grid(self, subject)
         self.header.HideColLabels()
