@@ -51,11 +51,13 @@ class DataBaseList(DataBase):
     def GetNumberCols(self) -> int:
         return len(self.data[0])
 
-    def SetDataFunc(self, lst):
+    def SetDataFunc(self, lst) -> List[list]:
         if not isinstance(lst, list):
             raise TypeError('DataBaseList\'s data type must be list')
         b = [isinstance(i, list) for i in lst]
         if all(b):
+            if len(set([len(i) for i in lst])) != 1:
+                raise ValueError('')
             return lst
         elif all([not i for i in b]):
             return [lst]
@@ -111,7 +113,6 @@ class Grid(GridBase):
                  name=gridlib.GridNameStr) -> None:
         super().__init__(parent, DataBaseList(data), id, pos, size, style,
                          name)
-        self.basetype = 'list'  # 数据类型标识
         # self.HideRowLabels()
         # self.HideColLabels()
 

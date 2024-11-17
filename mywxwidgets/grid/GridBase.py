@@ -8,7 +8,7 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import List, Tuple, Callable, Optional, Iterable, TypedDict
+from typing import List, Tuple, Callable, Optional, Iterable
 
 import wx
 import wx.grid as gridlib
@@ -94,14 +94,18 @@ class DataBase(gridlib.GridTableBase):  # 基类
         
         Returns
         ------
-        array-like 
-            `self.data`
+        array-like ndim == 2
+            The outgoing array will be used to assign 
+            values to `self.data`, which will be passed 
+            to other methods, the array dimensions must be 2
 
         example
         -------
         >>> def SetDataFunc(self, data):
         >>>     if not isinstance(data, list):
-        >>>         raise TypeError('DataBaseList\'s data type must be list')
+        >>>         raise TypeError('data type must be list')
+        >>>     if any([not isinstance(i, list) for i in data]):
+        >>>         raise TypeError('data type must be list[list]')
         >>>     return data
         """
         ...

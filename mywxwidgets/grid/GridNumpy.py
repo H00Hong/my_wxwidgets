@@ -10,7 +10,7 @@ GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
 from typing import Union, Sequence, List, Tuple, Literal
-from numpy import array, asarray, ndarray, newaxis, insert, delete
+from numpy import array, asarray, ndarray, newaxis, insert, delete, char
 
 import wx
 import wx.grid as gridlib
@@ -18,27 +18,14 @@ import wx.grid as gridlib
 from .GridBase import DataBase, GridBase, FONT0, FONT1, build_empty
 
 
-def _empty(rows: int, cols: int):
-    return asarray(build_empty(rows, cols))
+class DataBaseChararray(DataBase):
 
-
-def _check_array(arr: ndarray):
-    if arr.ndim == 0:
-        return arr.reshape(1, 1)
-    elif arr.ndim == 1:
-        return arr[:, newaxis]
-    elif arr.ndim == 2:
-        return arr
-    else:
-        raise ValueError('The `ndim` of the input array must <= 2')
-
-
-class DataBaseNDArray(DataBase):  # 基类
-    # ndarray
-    data: ndarray
+    data: char.chararray
+    _slen: int
 
     def __init__(self,
-                 data: Union[ndarray, Sequence, None] = None,
+                 data: Union[ndarray, char.chararray, list, tuple, None] = None,
+                 str_len: int = 10,
                  rowlabels: Union[List[str], None] = None,
                  collabels: Union[List[str], None] = None):
         DataBase.__init__(self)
@@ -46,6 +33,14 @@ class DataBaseNDArray(DataBase):  # 基类
             data = (3, 3)
         if isinstance(data, tuple):
             data = build_empty(*data)
+        if not isinstance(str_len, int):
+            raise TypeError('str_len must be int')
+        if str_len < 1:
+            raise ValueError('str_len must > 0')
+        data = asarray(data, str)
+        dtype = data.dtype
+        slen = dtype.itemsize // dtype.alignment
+        self._slen = slen if slen > str_len else str_len
         self.data = self.SetDataFunc(data)
         if rowlabels is None:
             self.rowlabels = None
@@ -56,56 +51,61 @@ class DataBaseNDArray(DataBase):  # 基类
         else:
             self.SetColLabels(collabels)
 
+    def _set_array(self, obj):
+        return char.asarray(obj, self._slen, unicode=True)
+
+    def SetDataFunc(self, obj) -> char.chararray:
+        arr = self._set_array(obj)
+        if arr.ndim == 0:
+            return arr.reshape(1, 1)
+        elif arr.ndim == 1:
+            return arr[:, newaxis]
+        elif arr.ndim == 2:
+            return arr
+        else:
+            raise ValueError('The `ndim` of the input array must <= 2')
+
     def GetNumberRows(self) -> int:
         return self.data.shape[0]
 
     def GetNumberCols(self) -> int:
         return self.data.shape[1]
 
-    def SetDataFunc(self, obj):
-        return _check_array(asarray(obj))
-
-    def SetValueFunc(self, data: ndarray, row: int, col: int, value) -> None:
+    def SetValueFunc(self, data: char.chararray, row: int, col: int, value) -> None:
+        if len(str(value)) > self._slen:
+            self._slen = len(str(value))
+            data = self.SetDataFunc(data)
         data[row, col] = value
 
-    def GetValueFunc(self, data: ndarray, row: int, col: int) -> str:
+    def GetValueFunc(self, data: char.chararray, row: int, col: int) -> str:
         return str(data[row, col])
 
-    def DeleteRowsFunc(self, data: ndarray, pos: int, numRows: int):
+    def DeleteRowsFunc(self, data: char.chararray, pos: int, numRows: int) -> char.chararray:
         return delete(data, list(range(pos, pos + numRows)), axis=0)
 
-    def InsertRowsFunc(self, data: ndarray, pos: int, numRows: int):
-        return insert(data, pos, _empty(numRows, data.shape[1]), axis=0)
+    def InsertRowsFunc(self, data: char.chararray, pos: int, numRows: int) -> char.chararray:
+        empty = self._set_array(build_empty(numRows, data.shape[1]))
+        return insert(data, pos, empty, axis=0)
 
-    def AppendRowsFunc(self, data: ndarray, numRows: int):
-        return insert(data, data.shape[0], _empty(numRows, data.shape[1]), axis=0)
+    def AppendRowsFunc(self, data: char.chararray, numRows: int) -> char.chararray:
+        empty = self._set_array(build_empty(numRows, data.shape[1]))
+        return insert(data, data.shape[0], empty, axis=0)
 
-    def DeleteColsFunc(self, data: ndarray, pos: int, numCols: int):
+    def DeleteColsFunc(self, data: char.chararray, pos: int, numCols: int) -> char.chararray:
         return delete(data, list(range(pos, pos + numCols)), axis=1)
 
-    def InsertColsFunc(self, data: ndarray, pos: int, numCols: int):
-        return insert(data, pos, _empty(numCols, data.shape[0]), axis=1)
+    def InsertColsFunc(self, data: char.chararray, pos: int, numCols: int) -> char.chararray:
+        empty = self._set_array(build_empty(numCols, data.shape[0]))
+        return insert(data, pos, empty, axis=1)
 
-    def AppendColsFunc(self,data: ndarray, numCols: int):
-        return insert(data, data.shape[1], _empty(numCols, data.shape[0]), axis=1)
-
-
-class DataBaseObj(DataBaseNDArray):
-
-    def SetDataFunc(self, obj):
-        arr = array(obj, object)
-        return super().SetDataFunc(arr)
-
-
-class DataBaseStr(DataBaseNDArray):
-
-    def SetDataFunc(self, obj):
-        arr = array(obj, str)
-        return super().SetDataFunc(arr)
+    def AppendColsFunc(self,data: char.chararray, numCols: int) -> char.chararray:
+        empty = self._set_array(build_empty(numCols, data.shape[0]))
+        return insert(data, data.shape[1], empty, axis=1)
 
 
 class Grid(GridBase):
-    dataBase: DataBaseNDArray
+
+    dataBase: DataBaseChararray
 
     def __init__(self,
                  parent,
@@ -115,23 +115,19 @@ class Grid(GridBase):
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
-                 name=gridlib.GridNameStr):
-        if data_type == 'object':
-            data_base = DataBaseObj(data)
-        elif data_type == 'str':
-            data_base = DataBaseStr(data)
-        else:
-            raise ValueError('data_type must be "object" or "str"')
-        super().__init__(parent, data_base, id, pos, size, style, name)
-        self.basetype = 'ndarray_' + data_type
+                 name=gridlib.GridNameStr) -> None:
+        super().__init__(parent, 
+                         DataBaseChararray(data, data_type), 
+                         id, pos, size, 
+                         style, name)
         # self.HideRowLabels()
         # self.HideColLabels()
 
-    def _OnCopy(self, event):
+    def _OnCopy(self, event) -> None:
         # 实现复制功能的代码
         top_left, bottom_right = self._selected_range
         lst = self.dataBase.data[top_left[0]:bottom_right[0] + 1,
-                                 top_left[1]:bottom_right[1] + 1].astype(str)
+                                 top_left[1]:bottom_right[1] + 1]
         text = '\n'.join('\t'.join(i) for i in lst)
         # 复制到剪切板
         if wx.TheClipboard.Open():
@@ -159,7 +155,7 @@ class GridWithHeader(wx.Panel):
             elif isinstance(subject, list):
                 header = (1, len(subject[0]))
         self.header = Grid(self, header)
-        self.subject = Grid(self, subject, 'str')
+        self.subject = Grid(self, subject)
         self.header.HideColLabels()
         self.subject.HideColLabels()
         self._isRowLabelsVisable = 1
@@ -253,4 +249,4 @@ class GridWithHeader(wx.Panel):
         self.subject.dataBase.collabels = labels
 
 
-__all__ = ['DataBaseObj', 'DataBaseStr', 'Grid', 'GridWithHeader', 'gridlib']
+__all__ = ['DataBaseChararray', 'Grid', 'GridWithHeader', 'gridlib']
