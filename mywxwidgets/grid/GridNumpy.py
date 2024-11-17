@@ -109,17 +109,15 @@ class Grid(GridBase):
 
     def __init__(self,
                  parent,
-                 data: Union[List[list], tuple, None] = None,
-                 data_len: int = 10,
+                 data: Union[ndarray, char.chararray, List[list],
+                             Tuple[int, ...], None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
                  name=gridlib.GridNameStr) -> None:
-        super().__init__(parent, 
-                         DataBaseChararray(data, data_len), 
-                         id, pos, size, 
-                         style, name)
+        super().__init__(parent, DataBaseChararray(data), id, pos, size, style,
+                         name)
         # self.HideRowLabels()
         # self.HideColLabels()
 
@@ -139,8 +137,10 @@ class GridWithHeader(wx.Panel):
 
     def __init__(self,
                  parent,
-                 subject: Union[List[list], Tuple[int, ...], None] = None,
-                 header: Union[List[list], Tuple[int, ...], None] = None,
+                 subject: Union[ndarray, char.chararray, List[list],
+                                Tuple[int, ...], None] = None,
+                 header: Union[ndarray, char.chararray, List[list],
+                               Tuple[int, ...], None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
