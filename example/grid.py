@@ -40,7 +40,7 @@ class Main(wx.Frame):
 
 
 if __name__ == '__main__':
-    app = wx.App(False)
+    app = wx.App()
     frame = Main()
     frame.Show()
     app.MainLoop()
