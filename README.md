@@ -1,2 +1,4 @@
-# wxplot
-Some column improvements for `wx.lib.plot`
+# mywxwidgets
+
+My wxwidgets for `wxPython`
+
