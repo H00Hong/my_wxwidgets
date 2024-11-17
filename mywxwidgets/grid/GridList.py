@@ -105,7 +105,7 @@ class Grid(GridBase):
 
     def __init__(self,
                  parent,
-                 data: Union[List[list], tuple, None] = None,
+                 data: Union[List[list], Tuple[int, ...], None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
