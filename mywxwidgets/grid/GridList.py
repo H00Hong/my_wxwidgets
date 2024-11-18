@@ -105,14 +105,15 @@ class Grid(GridBase):
 
     def __init__(self,
                  parent,
-                 data: Union[List[list], Tuple[int, ...], None] = None,
+                 dat: Union[DataBase, List[list], Tuple[int, ...], None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
                  name=gridlib.GridNameStr) -> None:
-        super().__init__(parent, DataBaseList(data), id, pos, size, style,
-                         name)
+        if not isinstance(dat, DataBase):
+            dat = DataBaseList(dat)
+        super().__init__(parent, dat, id, pos, size, style, name)
         # self.HideRowLabels()
         # self.HideColLabels()
 
