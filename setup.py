@@ -1,6 +1,6 @@
 ﻿from setuptools import setup, find_packages
 
-
+# python setup.py bdist_wheel
 setup(
     name='mywxwidgets',  # 你的包名
     version='0.0.2',  # 版本号
@@ -18,7 +18,5 @@ setup(
     ],
     python_requires='>=3.8',  # 所需的最低Python版本
     install_requires=[  # 依赖列表
-        'wxPython',
-        'numpy'
-    ]
-)
+        'wxPython', 'numpy'
+    ])
