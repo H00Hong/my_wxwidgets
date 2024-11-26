@@ -24,9 +24,31 @@ import wx.dataview as dv
 
 @dataclass(order=True, unsafe_hash=True, slots=True)
 class DataRow:
+    """
+    用于存储 DataViewModel 中的数据
+    以行为单位
 
-    _ids: Tuple[int, ...] = field(compare=True, metadata={'description': 'The id of datarow, which is an integer tuple'})
-    data: List[str] = field(compare=False, metadata={'description': 'The value of datarow, which is a string list'})
+    attributes
+    ---------
+    ids: Tuple[int, ...]
+        数据行的 id , 可接受一个整数序列
+    data: List[str]
+        数据行的值, 应为一个字符串列表
+
+    methods
+    -------
+    - lid--property 
+        id 的级别 即 length
+    - __len__(self) 
+        data 的长度
+    - __getitem__(self, index) 
+        data 的索引
+    - __setitem__(self, index, value)
+        data 的索引赋值
+    """
+
+    _ids: Tuple[int, ...] = field(compare=True)
+    data: List[str] = field(compare=False)
 
     def __post_init__(self) -> None:
         self._ids = tuple(self._ids)
@@ -47,6 +69,12 @@ class DataRow:
 
     def __len__(self) -> int:
         return len(self.data)
+
+    def __getitem__(self, index):
+        return self.data[index]
+
+    def __setitem__(self, index: int, value: str) -> None:
+        self.data[index] = value
 
 
 def compare_dr(dr1: DataRow, dr2: DataRow) -> None:
@@ -344,7 +372,7 @@ class DataViewModel(dv.DataViewModel):
         if not item:
             return None
         node = self.GetDataRow(item)
-        return node.data[col]
+        return node[col]
 
     def SetValue(self, value, item: dv.DataViewItem, col: int) -> bool:
         """设置 item(DataViewItem) 的 col 列的值为 value, 返回是否更改成功"""
@@ -352,7 +380,7 @@ class DataViewModel(dv.DataViewModel):
         if not item:
             return False
         oid = self.GetItemId(item)
-        self.data[oid].data[col] = value
+        self.data[oid][col] = value
         self.ValueChanged(item, col)  # 通知视图值已更改
         self.ItemChanged(item)  # 通知视图值已更改
         return True
