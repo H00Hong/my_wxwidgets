@@ -8,7 +8,7 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import List, Tuple, Callable, Optional, Iterable
+from typing import Iterable, List, Optional, Tuple
 
 import wx
 import wx.grid as gridlib
@@ -46,19 +46,20 @@ class DataBase(gridlib.GridTableBase):  # 基类
             if not (hasattr(_cls, method) and callable(getattr(_cls, method))
                     and getattr(DataBase, method, None) != getattr(
                         _cls, method)):
-                raise NotImplementedError(f'{self.__class__}: not implement {method}')
+                raise NotImplementedError(
+                    f'{self.__class__}: not implement {method}')
 
 #region abstractmethod
 
     def GetNumberRows(self) -> int:
         """
         Override this method to return the number of rows in your data.
-        
+
         Returns
         -----
         int
             The number of rows in your data.
-        
+
         example
         -------
         >>> def GetNumberRows(self):
@@ -69,12 +70,12 @@ class DataBase(gridlib.GridTableBase):  # 基类
     def GetNumberCols(self) -> int:
         """
         Override this method to return the number of columns in your data.
-        
+
         Returns
         -----
         int
             The number of columns in your data.
-        
+
         example
         -------
         >>> def GetNumberCols(self):
@@ -91,7 +92,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
         ----------
         data : array-like
             self.data
-        
+
         Returns
         ------
         array-like ndim == 2
@@ -179,7 +180,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
         Notes
         -----
         The returned data must have the same structure as the input data.
-        
+
         example
         -------
         >>> # if isinstance(data, list)
@@ -212,7 +213,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
         Notes
         -----
         The returned data must have the same structure as the input data.
-        
+
         example
         -------
         >>> # if isinstance(data, list)
@@ -453,7 +454,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             return self.GetValueFunc(self.data, row, col)
-        except:
+        except Exception as e:
+            print(e)
             return ''
 
     def SetData(self, data) -> None:
@@ -491,7 +493,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
         value: any
             The value of the cell. This can be anything that can be
             converted to a string.
-        
+
         raises
         ------
         IndexError
@@ -629,7 +631,9 @@ class DataBase(gridlib.GridTableBase):  # 基类
             `label` is not a string, returns False.
         """
         if self.collabels is None:
-            print(f'{self.__class__}: collabels is None, cannot set column label')
+            print(
+                f'{self.__class__}: collabels is None, cannot set column label'
+            )
             return False
         if isinstance(label, str):
             self.collabels[col] = label
@@ -827,9 +831,9 @@ class DataBase(gridlib.GridTableBase):  # 基类
         This method sets the data to a fresh empty array of the same shape as the current data.
         It then calls ValuesUpdated to notify the grid that the data has changed.
         """
-        self.data = self.SetDataFunc(build_empty(self.GetNumberRows(), self.GetNumberCols()))
+        self.data = self.SetDataFunc(
+            build_empty(self.GetNumberRows(), self.GetNumberCols()))
         self.ValuesUpdated()
-
 
 COPY = 'Copy'
 PASTE = 'Paste'
@@ -845,20 +849,14 @@ DELETE_COLS = 'DeleteCols'
 
 class GridBase(gridlib.Grid):
 
-    _MENU_ITEM: Tuple[Tuple[Optional[str], str], ...] = (
-        (COPY, '复制  Ctrl+C'),
-        (PASTE, '粘贴  Ctrl+V'),
-        (CUT, '剪切  Ctrl+X'),
-        (None, ''),
-        (INSERT_UP, '向上插入空行'),
-        (INSERT_DOWN, '向下插入空行'),
-        (INSERT_LEFT, '向左插入空列'),
-        (INSERT_RIGHT, '向右插入空列'),
-        (None, ''),
-        (DELETE_VALUE, '清除  Delete'),
-        (DELETE_ROWS, '删除行'),
-        (DELETE_COLS, '删除列')
-    )
+    _MENU_ITEM: Tuple[Tuple[Optional[str], str],
+                      ...] = ((COPY, '复制  Ctrl+C'), (PASTE, '粘贴  Ctrl+V'),
+                              (CUT, '剪切  Ctrl+X'), (None, ''),
+                              (INSERT_UP, '向上插入空行'), (INSERT_DOWN, '向下插入空行'),
+                              (INSERT_LEFT, '向左插入空列'), (INSERT_RIGHT,
+                                                        '向右插入空列'), (None, ''),
+                              (DELETE_VALUE, '清除  Delete'),
+                              (DELETE_ROWS, '删除行'), (DELETE_COLS, '删除列'))
 
     def __init__(
             self,
@@ -1233,6 +1231,7 @@ class GridBase(gridlib.Grid):
         if updateLabels:
             self.ForceRefresh()
         return b
+
 
 __all__ = [
     'DataBase', 'GridBase', 'build_empty', 'COPY', 'PASTE', 'CUT', 'INSERT_UP',

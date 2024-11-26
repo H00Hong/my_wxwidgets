@@ -1,7 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 
+import os.path
+import sys
+
 import wx
-import os.path, sys
 
 sys.path.append(os.path.split(os.path.dirname(__file__))[0])
 from mywxwidgets.richtextbase import RichTextBase

@@ -1,8 +1,10 @@
 ﻿# -*- coding: utf-8 -*-
 
-import wx
-import os.path, sys
+import os.path
+import sys
 from typing import Sequence
+
+import wx
 
 sys.path.append(os.path.split(os.path.dirname(__file__))[0])
 from mywxwidgets.dataview import DataRow, DataViewModel, dv

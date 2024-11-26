@@ -9,13 +9,13 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import Union, List, Tuple
-from numpy import asarray, ndarray, newaxis, insert, delete, char
+from typing import List, Tuple, Union
 
 import wx
 import wx.grid as gridlib
+from numpy import asarray, char, delete, insert, ndarray, newaxis
 
-from .gridbase import DataBase, GridBase, FONT0, FONT1, build_empty
+from .gridbase import FONT0, FONT1, DataBase, GridBase, build_empty
 
 
 class DataBaseChararray(DataBase):

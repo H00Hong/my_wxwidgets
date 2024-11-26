@@ -9,12 +9,12 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import Union, List, Tuple
+from typing import List, Tuple, Union
 
 import wx
 import wx.grid as gridlib
 
-from .gridbase import DataBase, GridBase, build_empty, FONT0, FONT1
+from .gridbase import FONT0, FONT1, DataBase, GridBase, build_empty
 
 
 def list_transpose(x: List[list]):
@@ -234,4 +234,4 @@ class GridWithHeader(wx.Panel):
         self.subject.dataBase.SetColLabels(labels)
 
 
-__all__= ['DataBaseList', 'Grid', 'GridWithHeader', 'gridlib']
+__all__ = ['DataBaseList', 'Grid', 'GridWithHeader', 'gridlib']

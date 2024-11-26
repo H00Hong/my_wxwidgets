@@ -17,7 +17,7 @@
 """
 import sys
 from dataclasses import dataclass, field
-from typing import Sequence, List, Tuple, Dict, Iterable, Optional
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import wx.dataview as dv
 
@@ -37,11 +37,11 @@ class DataRow:
 
     methods
     -------
-    - lid--property 
+    - lid--property
         id 的级别 即 length
-    - __len__(self) 
+    - __len__(self)
         data 的长度
-    - __getitem__(self, index) 
+    - __getitem__(self, index)
         data 的索引
     - __setitem__(self, index, value)
         data 的索引赋值
@@ -94,7 +94,8 @@ def compare_dr(dr1: DataRow, dr2: DataRow) -> None:
 
     else:  # dr1.lid > dr2.lid:
         dr2lid_ = dr2lid - 1
-        if dr1ids[:dr2lid_] != dr2ids[:dr2lid_] or dr1ids[dr2lid_] != dr2ids[-1] + 1:
+        if dr1ids[:dr2lid_] != dr2ids[:dr2lid_] or dr1ids[
+                dr2lid_] != dr2ids[-1] + 1:
             index = dr1ids[:dr2lid_] + (dr1ids[dr2lid_] + 1, )
             dr2.ids = index
 
@@ -132,7 +133,7 @@ class DataViewModel(dv.DataViewModel):
 
         self.SetDataRows(data, resort)
 
-    def SetDataRows(self, data: Sequence[DataRow], resort: bool = False) -> None:
+    def SetDataRows(self, data: Sequence[DataRow], resort: bool = False):
         """使用 Sequence[DataRow] 为数据源重新设置数据"""
         if not isinstance(data, Sequence):
             raise TypeError('DataViewModel.SetDataRows: data must be Sequence')
@@ -157,7 +158,8 @@ class DataViewModel(dv.DataViewModel):
         if len(set(ncol)) == 1:
             self._ncol = ncol[0]
         elif len(set(ncol)) > 1:
-            raise ValueError('DataViewModel: data ColumnCount length must be equal')
+            raise ValueError(
+                'DataViewModel: data ColumnCount length must be equal')
 
         self.check_all_container(True)
 
@@ -176,11 +178,13 @@ class DataViewModel(dv.DataViewModel):
                 'DataViewModel.AppendDataRow: data must be dataRow')
         if datarow.lid > self._lid_max:
             raise ValueError(
-                'DataViewModel.AppendDataRow: data length must be greater than lid_max'
+                'DataViewModel.AppendDataRow: data length must be greater\
+ than lid_max'
             )
         if len(datarow) != self._ncol:
             raise ValueError(
-                'DataViewModel.AppendDataRow: data ColumnCount length must be equal'
+                'DataViewModel.AppendDataRow: data ColumnCount length\
+ must be equal'
             )
 
     def AppendDataRow(self, datarow: DataRow) -> None:
@@ -207,7 +211,7 @@ class DataViewModel(dv.DataViewModel):
             self.ItemsAdded(parent[0], items)
         else:
             for p in parent:
-                _items = dv.DataViewItemArray() # type: ignore
+                _items = dv.DataViewItemArray()  # type: ignore
                 for pp in parents:
                     if pp == p:
                         _items.append(items[parents.index(pp)])
@@ -218,7 +222,8 @@ class DataViewModel(dv.DataViewModel):
             dat = list(self.data.values())
         else:
             dat = sorted(list(self.data.values()))
-        if not self.data: return
+        if not self.data:
+            return
         for oid, dr in self.data.items():
             if dr.lid == self._lid_max:
                 self.container[oid] = False
@@ -239,7 +244,8 @@ class DataViewModel(dv.DataViewModel):
 
     def SortDataRows(self) -> None:
         """对现有的 DataRow 进行排序"""
-        idx, drs = zip(*sorted(enumerate(self.data.values()), key=lambda x: x[1]))
+        idx, drs = zip(
+            *sorted(enumerate(self.data.values()), key=lambda x: x[1]))
         self._set_SortDataRows(idx, drs)
 
     def _set_SortDataRows(self, idx: List[int], drs) -> None:
@@ -250,7 +256,8 @@ class DataViewModel(dv.DataViewModel):
 
     def ResortDataRows(self) -> None:
         """对现有的 DataRow 进行检查序号的重新排序"""
-        idx, drs = zip(*sorted(enumerate(self.data.values()), key=lambda x: x[1]))
+        idx, drs = zip(
+            *sorted(enumerate(self.data.values()), key=lambda x: x[1]))
         self._set_SortDataRows(idx, sort_drs(drs))
 
     def RemoveItem(self, item: dv.DataViewItem) -> None:
@@ -296,7 +303,7 @@ class DataViewModel(dv.DataViewModel):
 
     def GetChildren(self, parent: dv.DataViewItem, children) -> int:
         """查找 parent(DataViewItem) 节点的子节点, 并放入 children 中
-        
+
         Parameters
         ----------
         - parent: DataViewItem
@@ -304,10 +311,10 @@ class DataViewModel(dv.DataViewModel):
         - children: array-like(带`append`方法)
             子节点列表
             使用`children`的`append`方法添加`DataViewItem`
-            
+
             给`DataViewCtrl`调用时传入`DataViewItemArray`
-            
-        
+
+
         Return
         -------
         int
@@ -367,7 +374,8 @@ class DataViewModel(dv.DataViewModel):
         return True
 
     def GetValue(self, item: dv.DataViewItem, col: int):
-        """返回 item(DataViewItem) 的 col 列的值, 如果不存在返回 None. DataViewCtrl 调用此方法显示值"""
+        """返回 item(DataViewItem) 的 col 列的值, 如果不存在返回 None.
+        DataViewCtrl 调用此方法显示值"""
         # print('GetValue')
         if not item:
             return None
