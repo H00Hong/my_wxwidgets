@@ -29,10 +29,6 @@ class RichTextBase(wx.Frame):
         self.rtc.EndSuppressUndo()  # 结束禁止撤消命令历史记录
         self.rtc.Thaw()
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.rtc, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(sizer)
-
     def set_text(self) -> None:
         raise NotImplementedError
 
@@ -48,7 +44,7 @@ class RichTextBase(wx.Frame):
     def write(self,
               text: str,
               colour=None,
-              font=None,
+              fontsize=None,
               bold=False,
               italic=False,
               underline=False,
@@ -59,8 +55,8 @@ class RichTextBase(wx.Frame):
 
         if colour:
             func = self._func_style(func, 'TextColour', colour)
-        if font:
-            func = self._func_style(func, 'FontSize', font)
+        if fontsize:
+            func = self._func_style(func, 'FontSize', fontsize)
         if bold:
             func = self._func_style(func, 'Bold')
         if italic:
