@@ -9,16 +9,16 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import List, Tuple, Union
+from typing import Union, List, Tuple
+from numpy import asarray, ndarray, newaxis, insert, delete, char
 
 import wx
 import wx.grid as gridlib
-from numpy import asarray, char, delete, insert, ndarray, newaxis
 
-from .gridbase import FONT0, FONT1, DataBase, GridBase, build_empty
+from .gridbase import DataBase, GridBase, FONT0, FONT1, build_empty
 
 
-class DataBaseChararray(DataBase):
+class DataBaseNP(DataBase):
 
     data: char.chararray
     _slen: int
@@ -33,7 +33,7 @@ class DataBaseChararray(DataBase):
             data = (3, 3)
         if isinstance(data, tuple):
             if len(data) != 2:
-                raise ValueError(f'{self.__class__}: The length of the tuple must be 2')
+                raise ValueError(f'{self.__class__}.data: The length of the tuple must be 2')
             data = build_empty(*data)
         if not isinstance(str_len, int):
             raise TypeError(f'{self.__class__}: str_len must be int')
@@ -107,7 +107,7 @@ class DataBaseChararray(DataBase):
 
 class Grid(GridBase):
 
-    dataBase: DataBaseChararray
+    dataBase: DataBaseNP
 
     def __init__(self,
                  parent,
@@ -119,7 +119,7 @@ class Grid(GridBase):
                  style=wx.WANTS_CHARS,
                  name=gridlib.GridNameStr) -> None:
         if not isinstance(dat, DataBase):
-            dat = DataBaseChararray(dat)
+            dat = DataBaseNP(dat)
         super().__init__(parent, dat, id, pos, size, style, name)
         # self.HideRowLabels()
         # self.HideColLabels()
@@ -252,4 +252,4 @@ class GridWithHeader(wx.Panel):
         self.subject.dataBase.collabels = labels
 
 
-__all__ = ['DataBaseChararray', 'Grid', 'GridWithHeader', 'gridlib']
+__all__ = ['DataBaseNP', 'Grid', 'GridWithHeader', 'gridlib']
