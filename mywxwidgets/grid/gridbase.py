@@ -8,7 +8,7 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import List, Tuple, Optional, Iterable
+from typing import List, Tuple, Optional, Iterable, Literal
 
 import wx
 import wx.grid as gridlib
@@ -55,7 +55,56 @@ EVT_GRID_ROWS_INSERTED = wx.PyEventBinder(myEVT_GRID_ROWS_INSERTED)
 EVT_GRID_COLS_DELETED = wx.PyEventBinder(myEVT_GRID_COLS_DELETED)
 EVT_GRID_COLS_APPENDED = wx.PyEventBinder(myEVT_GRID_COLS_APPENDED)
 EVT_GRID_COLS_INSERTED = wx.PyEventBinder(myEVT_GRID_COLS_INSERTED)
-# TODO 自定义事件 绑定以上消息
+
+
+# 自定义事件 绑定以上自定义消息
+class GridRowColEvent(wx.PyCommandEvent):
+
+    def __init__(self, evtType, commandobj: Literal['row', 'col'],
+                 commandtype: Literal['delete', 'insert'], pos: int, num: int,
+                 eventobj) -> None:
+        super(GridRowColEvent, self).__init__(evtType)
+        assert commandobj in ('row', 'col')
+        assert commandtype in ('delete', 'insert')
+        assert isinstance(pos, int)
+        assert isinstance(num, int)
+        self._commandobj = commandobj
+        self._commandtype = commandtype
+        self._pos = pos
+        self._num = num
+        self._eventobj = eventobj
+
+    def GetPosition(self) -> int:
+        return self._pos
+
+    def GetNum(self) -> int:
+        return self._num
+
+    def GetCommandType(self) -> Literal['delete', 'insert']:
+        """
+        GetCommandType() -> Literal['delete', 'insert']
+
+        获取命令类型
+            当 Position == -1 & CommandType == 'insert' 时, 表示 append
+        """
+        return self._commandtype
+
+    def GetCommandObj(self) -> Literal['row', 'col']:
+        """
+        GetCommandObj() -> Literal['row', 'col']
+
+        获取命令对象
+        """
+        return self._commandobj
+
+    def GetEventObject(self):
+        """
+        GetEventObject() -> DataBase
+
+        获取事件对象 数据基DataBase
+            如果想得到相应的 Grid 对象, 请使用 GetEventObject().GetView()
+        """
+        return self._eventobj
 
 
 def build_empty(rows: int, cols: int) -> List[List[str]]:
@@ -68,11 +117,11 @@ class DataBase(gridlib.GridTableBase):  # 基类
     """
 
     data: List[list]
-    rowlabels: Optional[List[str]]
-    collabels: Optional[List[str]]
+    rowlabels: Optional[List[str]] = None
+    collabels: Optional[List[str]] = None
 
     def __init__(self):
-        gridlib.GridTableBase.__init__(self)
+        super(DataBase, self).__init__()
 
         _cls = type(self)
         for method in ('GetNumberRows', 'GetNumberCols', 'SetDataFunc',
@@ -430,35 +479,74 @@ class DataBase(gridlib.GridTableBase):  # 基类
             self, gridlib.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.GetView().ProcessTableMessage(message)
 
-    def RowsDeleted(self, pos: int, numRows: int) -> None:
+    def RowsDeletedMessage(self, pos: int, numRows: int) -> None:
         message = gridlib.GridTableMessage(
             self, gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED, pos, numRows)
         self.GetView().ProcessTableMessage(message)
 
-    def RowsAppended(self, numRows: int) -> None:
+    def RowsDeletedEvent(self, pos: int, numRows: int) -> None:
+        event = GridRowColEvent(myEVT_GRID_ROWS_DELETED,
+                                'row', 'delete', pos, numRows,
+                                self)
+        self.GetView().ProcessEvent(event)
+
+    def RowsAppendedMessage(self, numRows: int) -> None:
         message = gridlib.GridTableMessage(
             self, gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED, numRows)
         self.GetView().ProcessTableMessage(message)
 
-    def RowsInserted(self, pos: int, numRows: int) -> None:
+    def RowsAppendedEvent(self, numRows: int) -> None:
+        event = GridRowColEvent(myEVT_GRID_ROWS_APPENDED,
+                                'row', 'insert', -1, numRows,
+                                self)
+        self.GetView().ProcessEvent(event)
+
+    def RowsInsertedMessage(self, pos: int, numRows: int) -> None:
         message = gridlib.GridTableMessage(
             self, gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED, pos, numRows)
         self.GetView().ProcessTableMessage(message)
 
-    def ColsDeleted(self, pos: int, numCols: int) -> None:
+    def RowsInsertedEvent(self, pos: int, numRows: int) -> None:
+        event = GridRowColEvent(myEVT_GRID_ROWS_INSERTED,
+                                'row', 'insert', pos, numRows,
+                                self)
+        self.GetView().ProcessEvent(event)
+
+    def ColsDeletedMessage(self, pos: int, numCols: int) -> None:
         message = gridlib.GridTableMessage(
             self, gridlib.GRIDTABLE_NOTIFY_COLS_DELETED, pos, numCols)
         self.GetView().ProcessTableMessage(message)
 
-    def ColsAppended(self, numCols: int) -> None:
+    def ColsDeletedEvent(self, pos: int, numCols: int) -> None:
+        # print('ColsDeletedEvent')
+        event = GridRowColEvent(myEVT_GRID_COLS_DELETED,
+                                'col', 'delete', pos, numCols,
+                                self)
+        self.GetView().ProcessEvent(event)
+
+    def ColsAppendedMessage(self, numCols: int) -> None:
         message = gridlib.GridTableMessage(
             self, gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED, numCols)
         self.GetView().ProcessTableMessage(message)
 
-    def ColsInserted(self, pos: int, numCols: int) -> None:
+    def ColsAppendedEvent(self, numCols: int) -> None:
+        # print('ColsAppendedEvent')
+        event = GridRowColEvent(myEVT_GRID_COLS_APPENDED,
+                                'col', 'insert', -1, numCols,
+                                self)
+        self.GetView().ProcessEvent(event)
+
+    def ColsInsertedMessage(self, pos: int, numCols: int) -> None:
         message = gridlib.GridTableMessage(
             self, gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED, pos, numCols)
         self.GetView().ProcessTableMessage(message)
+
+    def ColsInsertedEvent(self, pos: int, numCols: int) -> None:
+        # print('ColsInsertedEvent')
+        event = GridRowColEvent(myEVT_GRID_COLS_INSERTED,
+                                'col', 'insert', pos, numCols,
+                                self)
+        self.GetView().ProcessEvent(event)
 
 
 #endregion
@@ -501,13 +589,13 @@ class DataBase(gridlib.GridTableBase):  # 基类
         self.data = self.SetDataFunc(data)
         new_rows, new_cols = self.GetNumberRows(), self.GetNumberCols()
         if old_rows > new_rows:
-            self.RowsDeleted(0, old_rows - new_rows)
+            self.RowsDeletedMessage(0, old_rows - new_rows)
         elif old_rows < new_rows:
-            self.RowsAppended(new_rows - old_rows)
+            self.RowsAppendedMessage(new_rows - old_rows)
         if old_cols > new_cols:
-            self.ColsDeleted(0, old_cols - new_cols)
+            self.ColsDeletedMessage(0, old_cols - new_cols)
         elif old_cols < new_cols:
-            self.ColsAppended(new_cols - old_cols)
+            self.ColsAppendedMessage(new_cols - old_cols)
         self.ValuesUpdated()
 
     def SetDataValue(self, row: int, col: int, value) -> None:
@@ -708,7 +796,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
         item = self.GetValue(row, col)
         return item == '' or item is None
 
-    def DeleteRows(self, pos: int, numRows: int = 1) -> bool:
+    def DeleteRows(self, pos: int, numRows: int = 1, ProcessEvent: bool = True) -> bool:
         """
         Delete the rows at the given position.
 
@@ -726,13 +814,15 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             self.data = self.DeleteRowsFunc(self.data, pos, numRows)
-            self.RowsDeleted(pos, numRows)
+            self.RowsDeletedMessage(pos, numRows)
+            if ProcessEvent:
+                self.RowsDeletedEvent(pos, numRows)
             return True
         except Exception as e:
             print(e)
             return False
 
-    def DeleteCols(self, pos: int, numCols: int = 1) -> bool:
+    def DeleteCols(self, pos: int, numCols: int = 1, ProcessEvent: bool = True) -> bool:
         """
         Delete the columns at the given position.
 
@@ -750,13 +840,15 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             self.data = self.DeleteColsFunc(self.data, pos, numCols)
-            self.ColsDeleted(pos, numCols)
+            self.ColsDeletedMessage(pos, numCols)
+            if ProcessEvent:
+                self.ColsDeletedEvent(pos, numCols)
             return True
         except Exception as e:
             print(e)
             return False
 
-    def AppendRows(self, numRows: int = 1) -> bool:
+    def AppendRows(self, numRows: int = 1, ProcessEvent: bool = True) -> bool:
         """
         Append the specified number of rows to the table.
 
@@ -772,14 +864,16 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             self.data = self.AppendRowsFunc(self.data, numRows)
-            self.RowsAppended(numRows)
+            self.RowsAppendedMessage(numRows)
+            if ProcessEvent:
+                self.RowsAppendedEvent(numRows)
             self.ValuesUpdated()
             return True
         except Exception as e:
             print(e)
             return False
 
-    def AppendCols(self, numCols: int = 1) -> bool:
+    def AppendCols(self, numCols: int = 1, ProcessEvent: bool = True) -> bool:
         """
         Append the specified number of columns to the table.
 
@@ -795,14 +889,16 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             self.data = self.AppendColsFunc(self.data, numCols)
-            self.ColsAppended(numCols)
+            self.ColsAppendedMessage(numCols)
+            if ProcessEvent:
+                self.ColsAppendedEvent(numCols)
             self.ValuesUpdated()
             return True
         except Exception as e:
             print(e)
             return False
 
-    def InsertCols(self, pos: int, numCols: int = 1) -> bool:
+    def InsertCols(self, pos: int, numCols: int = 1, ProcessEvent: bool = True) -> bool:
         """
         Insert the specified number of columns at the given position.
 
@@ -820,14 +916,16 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             self.data = self.InsertColsFunc(self.data, pos, numCols)
-            self.ColsInserted(pos, numCols)
+            self.ColsInsertedMessage(pos, numCols)
+            if ProcessEvent:
+                self.ColsInsertedEvent(pos, numCols)
             self.ValuesUpdated()
             return True
         except Exception as e:
             print(e)
             return False
 
-    def InsertRows(self, pos: int, numRows: int = 1) -> bool:
+    def InsertRows(self, pos: int, numRows: int = 1, ProcessEvent: bool = True) -> bool:
         """
         Insert the specified number of rows at the given position.
 
@@ -845,7 +943,9 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         try:
             self.data = self.InsertRowsFunc(self.data, pos, numRows)
-            self.RowsInserted(pos, numRows)
+            self.RowsInsertedMessage(pos, numRows)
+            if ProcessEvent:
+                self.RowsInsertedEvent(pos, numRows)
             self.ValuesUpdated()
             return True
         except Exception as e:
@@ -1275,7 +1375,7 @@ __all__ = [
     'EVT_GRID_COL_AUTO_SIZE', 'EVT_GRID_RANGE_SELECTING',
     'EVT_GRID_RANGE_SELECTED', 'EVT_GRID_CELL_CHANGING',
     'EVT_GRID_CELL_CHANGED', 'EVT_GRID_SELECT_CELL', 'EVT_GRID_EDITOR_SHOWN',
-    'EVT_GRID_EDITOR_HIDDEN', 'EVT_GRID_EDITOR_CREATED', 'EVT_CELL_BEGIN_DRAG',
+    'EVT_GRID_EDITOR_HIDDEN', 'EVT_GRID_EDITOR_CREATED', 'EVT_GRID_CELL_BEGIN_DRAG',
     'EVT_GRID_ROW_MOVE', 'EVT_GRID_COL_MOVE', 'EVT_GRID_COL_SORT',
     'EVT_GRID_TABBING', 'EVT_GRID_RANGE_SELECT', 'EVT_GRID_ROWS_DELETED',
     'EVT_GRID_ROWS_APPENDED', 'EVT_GRID_COLS_DELETED',

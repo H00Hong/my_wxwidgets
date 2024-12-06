@@ -6,7 +6,7 @@ from typing import Sequence
 
 import wx
 
-sys.path.append(os.path.split(os.path.dirname(__file__))[0])
+sys.path.insert(0, os.path.split(os.path.dirname(__file__))[0])
 from mywxwidgets.dataview import DataRow, DataViewModel, dv
 
 

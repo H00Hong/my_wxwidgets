@@ -11,9 +11,10 @@ GridWithHeader
 """
 from typing import List, Tuple, Union
 
-import gridbase
 import wx
 from numpy import asarray, char, delete, insert, ndarray, newaxis
+
+from . import gridbase
 
 
 class DataBaseNP(gridbase.DataBase):
@@ -42,13 +43,9 @@ class DataBaseNP(gridbase.DataBase):
         slen = dtype.itemsize // dtype.alignment
         self._slen = slen if slen > str_len else str_len
         self.data = self.SetDataFunc(data)
-        if rowlabels is None:
-            self.rowlabels = None
-        else:
+        if rowlabels is not None:
             self.SetRowLabels(rowlabels)
-        if collabels is None:
-            self.collabels = None
-        else:
+        if collabels is not None:
             self.SetColLabels(collabels)
 
     def _set_array(self, obj):
@@ -183,9 +180,16 @@ class GridWithHeader(wx.Panel):
         # 同步横向滚动条
         self.header.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)
         self.subject.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)
-        # TODO 同步插入列
-        # TODO 同步删除列
-        # TODO 同步改变列宽
+        # 同步插入列 同步删除列
+        self.header.Bind(gridbase.EVT_GRID_COLS_APPENDED, self._on_grid_cols)
+        self.subject.Bind(gridbase.EVT_GRID_COLS_APPENDED, self._on_grid_cols)
+        self.header.Bind(gridbase.EVT_GRID_COLS_INSERTED, self._on_grid_cols)
+        self.subject.Bind(gridbase.EVT_GRID_COLS_INSERTED, self._on_grid_cols)
+        self.header.Bind(gridbase.EVT_GRID_COLS_DELETED, self._on_grid_cols)
+        self.subject.Bind(gridbase.EVT_GRID_COLS_DELETED, self._on_grid_cols)
+        # 同步改变列宽
+        self.header.Bind(gridbase.EVT_GRID_COL_SIZE, self._on_grid_colsize)
+        self.subject.Bind(gridbase.EVT_GRID_COL_SIZE, self._on_grid_colsize)
 
     def _on_grid_scroll(self, event):
         # 同步Grid的横向滚动条
@@ -194,12 +198,41 @@ class GridWithHeader(wx.Panel):
         # 获取当前Grid的滚动信息
         scroll_x, _ = sender.GetViewStart()
         # 设置另一个网格的滚动条位置
-        if sender == self.header:
+        if sender is self.header:
             _, scroll_y = self.subject.GetViewStart()
             self.subject.Scroll(scroll_x, scroll_y)
-        elif sender == self.subject:
+        elif sender is self.subject:
             _, scroll_y = self.header.GetViewStart()
             self.header.Scroll(scroll_x, scroll_y)
+        event.Skip()
+
+    def _on_grid_cols(self, event: gridbase.GridRowColEvent):
+        # 同步列增减
+        grid: Grid = event.GetEventObject().GetView()
+        if grid is self.header:
+            obj = self.subject.dataBase
+        elif grid is self.subject:
+            obj = self.header.dataBase
+        if event.GetCommandType() == 'insert':
+            if event.GetPosition() == -1:
+                obj.AppendCols(event.GetNum(), False)
+            else:
+                obj.InsertCols(event.GetPosition(), event.GetNum(), False)
+        else:
+            obj.DeleteCols(event.GetPosition(), event.GetNum(), False)
+        self._on_changed_size_()
+        event.Skip()
+    
+    def _on_grid_colsize(self, event):
+        # 同步列宽改变
+        grid: Grid = event.GetEventObject()
+        ncol = event.GetRowOrCol()
+        w = grid.GetColSize(ncol)
+        if grid is self.header:
+            self.subject.SetColSize(ncol, w)
+        elif grid is self.subject:
+            self.header.SetColSize(ncol, w)
+        self._on_changed_size_()
         event.Skip()
 
     def _on_changed_size_(self):
@@ -211,16 +244,16 @@ class GridWithHeader(wx.Panel):
         ]
         labelwidth = self.header.GetRowLabelSize()
         h = self.header.GetRowSize(0)
+        if self.header.GetNumberRows() > 1:
+            h += h // 2
         if sum(colwidths) + labelwidth > w:
-            if self.header.GetNumberRows() > 1:
-                h += 5
             _, sh = self.subject.GetSize()
             _, sh0 = self.subject.GetVirtualSize()
             h += sh - sh0
-            size = wx.Size(w, h)
-            self.header.SetSize(size)
-            self.header.SetMinSize(size)
-            self.header.SetMaxSize(size)
+        size = wx.Size(w, h)
+        self.header.SetSize(size)
+        self.header.SetMinSize(size)
+        self.header.SetMaxSize(size)
         self.Layout()
 
     def _on_changed_size(self, event):

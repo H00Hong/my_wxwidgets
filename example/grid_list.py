@@ -7,7 +7,7 @@ import numpy as np
 import wx
 import wx.grid as gridlib
 
-sys.path.append(os.path.split(os.path.dirname(__file__))[0])
+sys.path.insert(0, os.path.split(os.path.dirname(__file__))[0])
 from mywxwidgets.grid import gridlist
 
 
