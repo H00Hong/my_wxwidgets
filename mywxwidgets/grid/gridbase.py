@@ -13,15 +13,53 @@ from typing import List, Tuple, Optional, Iterable
 import wx
 import wx.grid as gridlib
 
-
-def build_empty(rows: int, cols: int) -> List[List[str]]:
-    return [[''] * cols for _ in range(rows)]
-
-
 FONT0 = (14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
          False, 'Microsoft Yahei')
 FONT1 = (16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
          False, 'Microsoft Yahei')
+EVT_GRID_CELL_LEFT_CLICK = gridlib.EVT_GRID_CELL_LEFT_CLICK
+EVT_GRID_CELL_RIGHT_CLICK = gridlib.EVT_GRID_CELL_RIGHT_CLICK
+EVT_GRID_CELL_LEFT_DCLICK = gridlib.EVT_GRID_CELL_LEFT_DCLICK
+EVT_GRID_CELL_RIGHT_DCLICK = gridlib.EVT_GRID_CELL_RIGHT_DCLICK
+EVT_GRID_LABEL_LEFT_CLICK = gridlib.EVT_GRID_LABEL_LEFT_CLICK
+EVT_GRID_LABEL_RIGHT_CLICK = gridlib.EVT_GRID_LABEL_RIGHT_CLICK
+EVT_GRID_LABEL_LEFT_DCLICK = gridlib.EVT_GRID_LABEL_LEFT_DCLICK
+EVT_GRID_LABEL_RIGHT_DCLICK = gridlib.EVT_GRID_LABEL_RIGHT_DCLICK
+EVT_GRID_ROW_SIZE = gridlib.EVT_GRID_ROW_SIZE
+EVT_GRID_COL_SIZE = gridlib.EVT_GRID_COL_SIZE
+EVT_GRID_COL_AUTO_SIZE = gridlib.EVT_GRID_COL_AUTO_SIZE
+EVT_GRID_RANGE_SELECTING = gridlib.EVT_GRID_RANGE_SELECTING
+EVT_GRID_RANGE_SELECTED = gridlib.EVT_GRID_RANGE_SELECTED
+EVT_GRID_CELL_CHANGING = gridlib.EVT_GRID_CELL_CHANGING
+EVT_GRID_CELL_CHANGED = gridlib.EVT_GRID_CELL_CHANGED
+EVT_GRID_SELECT_CELL = gridlib.EVT_GRID_SELECT_CELL
+EVT_GRID_EDITOR_SHOWN = gridlib.EVT_GRID_EDITOR_SHOWN
+EVT_GRID_EDITOR_HIDDEN = gridlib.EVT_GRID_EDITOR_HIDDEN
+EVT_GRID_EDITOR_CREATED = gridlib.EVT_GRID_EDITOR_CREATED
+EVT_GRID_CELL_BEGIN_DRAG = gridlib.EVT_GRID_CELL_BEGIN_DRAG
+EVT_GRID_ROW_MOVE = gridlib.EVT_GRID_ROW_MOVE
+EVT_GRID_COL_MOVE = gridlib.EVT_GRID_COL_MOVE
+EVT_GRID_COL_SORT = gridlib.EVT_GRID_COL_SORT
+EVT_GRID_TABBING = gridlib.EVT_GRID_TABBING
+EVT_GRID_RANGE_SELECT = gridlib.EVT_GRID_RANGE_SELECT
+
+myEVT_GRID_ROWS_DELETED = wx.NewEventType()
+myEVT_GRID_ROWS_APPENDED = wx.NewEventType()
+myEVT_GRID_ROWS_INSERTED = wx.NewEventType()
+myEVT_GRID_COLS_DELETED = wx.NewEventType()
+myEVT_GRID_COLS_APPENDED = wx.NewEventType()
+myEVT_GRID_COLS_INSERTED = wx.NewEventType()
+EVT_GRID_ROWS_DELETED = wx.PyEventBinder(myEVT_GRID_ROWS_DELETED)
+EVT_GRID_ROWS_APPENDED = wx.PyEventBinder(myEVT_GRID_ROWS_APPENDED)
+EVT_GRID_ROWS_INSERTED = wx.PyEventBinder(myEVT_GRID_ROWS_INSERTED)
+EVT_GRID_COLS_DELETED = wx.PyEventBinder(myEVT_GRID_COLS_DELETED)
+EVT_GRID_COLS_APPENDED = wx.PyEventBinder(myEVT_GRID_COLS_APPENDED)
+EVT_GRID_COLS_INSERTED = wx.PyEventBinder(myEVT_GRID_COLS_INSERTED)
+# TODO 自定义事件 绑定以上消息
+
+
+def build_empty(rows: int, cols: int) -> List[List[str]]:
+    return [[''] * cols for _ in range(rows)]
 
 
 class DataBase(gridlib.GridTableBase):  # 基类
@@ -387,46 +425,40 @@ class DataBase(gridlib.GridTableBase):  # 基类
 #region ProcessTableMessage
 
     def ValuesUpdated(self) -> None:  # 更新数据
-        # print('GetValues')
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(
-                self, gridlib.GRIDTABLE_REQUEST_VIEW_GET_VALUES))
+        # print('ValuesUpdated')
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+        self.GetView().ProcessTableMessage(message)
 
     def RowsDeleted(self, pos: int, numRows: int) -> None:
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED,
-                                     pos, numRows))
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED, pos, numRows)
+        self.GetView().ProcessTableMessage(message)
 
     def RowsAppended(self, numRows: int) -> None:
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED,
-                                     numRows))
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_NOTIFY_ROWS_APPENDED, numRows)
+        self.GetView().ProcessTableMessage(message)
 
     def RowsInserted(self, pos: int, numRows: int) -> None:
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED,
-                                     pos, numRows))
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_NOTIFY_ROWS_INSERTED, pos, numRows)
+        self.GetView().ProcessTableMessage(message)
 
     def ColsDeleted(self, pos: int, numCols: int) -> None:
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_COLS_DELETED,
-                                     pos, numCols))
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_NOTIFY_COLS_DELETED, pos, numCols)
+        self.GetView().ProcessTableMessage(message)
 
     def ColsAppended(self, numCols: int) -> None:
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED,
-                                     numCols))
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED, numCols)
+        self.GetView().ProcessTableMessage(message)
 
     def ColsInserted(self, pos: int, numCols: int) -> None:
-        self.GetView().ProcessTableMessage(
-            gridlib.GridTableMessage(self,
-                                     gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED,
-                                     pos, numCols))
+        message = gridlib.GridTableMessage(
+            self, gridlib.GRIDTABLE_NOTIFY_COLS_INSERTED, pos, numCols)
+        self.GetView().ProcessTableMessage(message)
 
 
 #endregion
@@ -868,8 +900,8 @@ class GridBase(gridlib.Grid):
             pos=wx.DefaultPosition,
             size=wx.DefaultSize,
             style=wx.WANTS_CHARS,
-            name='HGridBase') -> None:
-        super().__init__(parent, id, pos, size, style, name)
+            name='GridBase') -> None:
+        super(GridBase, self).__init__(parent, id, pos, size, style, name)
         self.dataBase = dataBase
         self.SetTable(self.dataBase, True)
         self._init_menu()
@@ -895,10 +927,10 @@ class GridBase(gridlib.Grid):
         # 绑定左键选择事件 获取选中区域
         self._selected_range: Tuple[Tuple[int, int],
                                     Tuple[int, int]] = ((0, 0), (0, 0))
-        self.Bind(gridlib.EVT_GRID_RANGE_SELECT, self._OnRangeSelect)
-        self.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK, self._OnLeftClick)
+        self.Bind(EVT_GRID_RANGE_SELECT, self._OnRangeSelect)
+        self.Bind(EVT_GRID_CELL_LEFT_CLICK, self._OnLeftClick)
         # 绑定右键菜单事件
-        self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self._OnRightClick)
+        self.Bind(EVT_GRID_CELL_RIGHT_CLICK, self._OnRightClick)
 
         for i, (it0, it1) in enumerate(self._MENU_ITEM):
             if it0 is None:
@@ -1235,5 +1267,18 @@ class GridBase(gridlib.Grid):
 __all__ = [
     'DataBase', 'GridBase', 'build_empty', 'COPY', 'PASTE', 'CUT', 'INSERT_UP',
     'INSERT_DOWN', 'INSERT_LEFT', 'INSERT_RIGHT', 'DELETE_VALUE',
-    'DELETE_ROWS', 'DELETE_COLS', 'gridlib'
+    'DELETE_ROWS', 'DELETE_COLS', 'EVT_GRID_CELL_LEFT_CLICK',
+    'EVT_GRID_CELL_RIGHT_CLICK', 'EVT_GRID_CELL_LEFT_DCLICK',
+    'EVT_GRID_CELL_RIGHT_DCLICK', 'EVT_GRID_LABEL_LEFT_CLICK',
+    'EVT_GRID_LABEL_RIGHT_CLICK', 'EVT_GRID_LABEL_LEFT_DCLICK',
+    'EVT_GRID_LABEL_RIGHT_DCLICK', 'EVT_GRID_ROW_SIZE', 'EVT_GRID_COL_SIZE',
+    'EVT_GRID_COL_AUTO_SIZE', 'EVT_GRID_RANGE_SELECTING',
+    'EVT_GRID_RANGE_SELECTED', 'EVT_GRID_CELL_CHANGING',
+    'EVT_GRID_CELL_CHANGED', 'EVT_GRID_SELECT_CELL', 'EVT_GRID_EDITOR_SHOWN',
+    'EVT_GRID_EDITOR_HIDDEN', 'EVT_GRID_EDITOR_CREATED', 'EVT_CELL_BEGIN_DRAG',
+    'EVT_GRID_ROW_MOVE', 'EVT_GRID_COL_MOVE', 'EVT_GRID_COL_SORT',
+    'EVT_GRID_TABBING', 'EVT_GRID_RANGE_SELECT', 'EVT_GRID_ROWS_DELETED',
+    'EVT_GRID_ROWS_APPENDED', 'EVT_GRID_COLS_DELETED',
+    'EVT_GRID_COLS_APPENDED', 'EVT_GRID_ROWS_INSERTED',
+    'EVT_GRID_COLS_INSERTED'
 ]

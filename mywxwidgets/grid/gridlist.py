@@ -9,19 +9,17 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import Union, List, Tuple
+from typing import List, Tuple, Union
 
+import gridbase
 import wx
-import wx.grid as gridlib
-
-from .gridbase import DataBase, GridBase, build_empty, FONT0, FONT1
 
 
 def list_transpose(x: List[list]):
     return [list(i) for i in zip(*x)]
 
 
-class DataBaseList(DataBase):
+class DataBaseList(gridbase.DataBase):
     """
     
     """
@@ -30,11 +28,11 @@ class DataBaseList(DataBase):
                  data: Union[List[list], list, Tuple[int, ...], None] = None,
                  rowlabels: Union[List[str], None] = None,
                  collabels: Union[List[str], None] = None) -> None:
-        DataBase.__init__(self)
+        super(DataBaseList, self).__init__()
         if data is None:
             data = (3, 3)
         if isinstance(data, tuple):
-            data = build_empty(*data)
+            data = gridbase.build_empty(*data)
         self.data = self.SetDataFunc(data)
         if rowlabels is None:
             self.rowlabels = None
@@ -57,7 +55,7 @@ class DataBaseList(DataBase):
         b = [isinstance(i, list) for i in lst]
         if all(b):
             if len(set([len(i) for i in lst])) != 1:
-                raise ValueError('')
+                raise ValueError(f'{self.__class__}: data type must be list[list]')
             return lst
         elif all([not i for i in b]):
             return [lst]
@@ -80,38 +78,38 @@ class DataBaseList(DataBase):
 
     def AppendRowsFunc(self, data: List[list], numRows: int = 1):
         ncols = len(data[0])
-        return data + build_empty(numRows, ncols)
+        return data + gridbase.build_empty(numRows, ncols)
 
     def AppendColsFunc(self, data: List[list], numCols: int = 1):
         nrows = len(data)
-        lst = build_empty(numCols, nrows)
+        lst = gridbase.build_empty(numCols, nrows)
         dat = list_transpose(data)
         return list_transpose(dat + lst)
 
     def InsertRowsFunc(self, data: List[list], pos: int, numRows: int = 1):
         ncols = len(data[0])
-        lst = build_empty(numRows, ncols)
+        lst = gridbase.build_empty(numRows, ncols)
         return data[:pos] + lst + data[pos:]
 
     def InsertColsFunc(self, data: List[list], pos: int, numCols: int = 1):
         nrows = len(data)
-        lst = build_empty(numCols, nrows)
+        lst = gridbase.build_empty(numCols, nrows)
         dat = list_transpose(data)
         dat_ = dat[:pos] + lst + dat[pos:]
         return list_transpose(dat_)
 
 
-class Grid(GridBase):
+class Grid(gridbase.GridBase):
 
     def __init__(self,
                  parent,
-                 dat: Union[DataBase, List[list], Tuple[int, ...], None] = None,
+                 dat: Union[gridbase.DataBase, List[list], Tuple[int, ...], None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
-                 name=gridlib.GridNameStr) -> None:
-        if not isinstance(dat, DataBase):
+                 name='Grid') -> None:
+        if not isinstance(dat, gridbase.DataBase):
             dat = DataBaseList(dat)
         super().__init__(parent, dat, id, pos, size, style, name)
         # self.HideRowLabels()
@@ -143,23 +141,33 @@ class GridWithHeader(wx.Panel):
         self.subject = Grid(self, subject)
         self.header.HideColLabels()
         self.subject.HideColLabels()
-        self._isRowLabelsVisable = 1
-        self.line = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
-        self.line.SetMinSize((-1, 3))
-        self.line.SetMaxSize((-1, 3))
+        self.SetHeaderLabels([f'header{i+1}' for i in range(100)])
 
         self.layout = wx.BoxSizer(wx.VERTICAL)
         self.layout.Add(self.header, 0, wx.ALL | wx.EXPAND, 0)
-        self.layout.Add(self.line, 0, wx.ALL | wx.EXPAND, 0)
+        self.layout.Add(self._line(), 0, wx.ALL | wx.EXPAND, 0)
         self.layout.Add(self.subject, 1, wx.ALL | wx.EXPAND, 0)
         self.SetSizer(self.layout)
 
-        self.header.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)  # 横向滚动条同步
-        self.subject.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)  # 横向滚动条同步
+        self._connect_grid()
         # 根据实际长度改变高度 防止滚动条遮盖内容
-        self.header.Bind(gridlib.EVT_GRID_CELL_CHANGED, self._on_changed_size)
-        self.subject.Bind(gridlib.EVT_GRID_CELL_CHANGED, self._on_changed_size)
+        self.header.Bind(gridbase.EVT_GRID_CELL_CHANGED, self._on_changed_size)
+        self.subject.Bind(gridbase.EVT_GRID_CELL_CHANGED, self._on_changed_size)
         self.Bind(wx.EVT_SIZE, self._on_size)
+
+    def _line(self):
+        line = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
+        line.SetMinSize((-1, 3))
+        line.SetMaxSize((-1, 3))
+        return line
+
+    def _connect_grid(self):
+        # 同步横向滚动条
+        self.header.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)
+        self.subject.Bind(wx.EVT_SCROLLWIN, self._on_grid_scroll)
+        # TODO 同步插入列
+        # TODO 同步删除列
+        # TODO 同步改变列宽
 
     def _on_grid_scroll(self, event):
         # 同步Grid的横向滚动条
@@ -176,33 +184,39 @@ class GridWithHeader(wx.Panel):
             self.header.Scroll(scroll_x, scroll_y)
         event.Skip()
 
-    def _on_changed_size_(self, grid: Grid):
+    def _on_changed_size_(self):
         # 根据实际长度改变高度 防止滚动条遮盖内容
-        w, _ = grid.GetSize()
-        if grid.GetNumberCols() + self._isRowLabelsVisable > w / 80:
-            self.header.SetMinSize((w, 49))
-            self.header.SetMaxSize((w, 49))
-        else:
-            self.header.SetMinSize((w, 31))
-            self.header.SetMaxSize((w, 31))
+        w, _ = self.header.GetSize()
+        colwidths = [
+            self.header.GetColSize(i)
+            for i in range(self.header.GetNumberCols())
+        ]
+        labelwidth = self.header.GetRowLabelSize()
+        h = self.header.GetRowSize(0)
+        if sum(colwidths) + labelwidth > w:
+            if self.header.GetNumberRows() > 1:
+                h += 5
+            _, sh = self.subject.GetSize()
+            _, sh0 = self.subject.GetVirtualSize()
+            h += sh - sh0
+            size = wx.Size(w, h)
+            self.header.SetSize(size)
+            self.header.SetMinSize(size)
+            self.header.SetMaxSize(size)
+        self.layout.Layout()
 
     def _on_changed_size(self, event):
         # 根据实际长度改变高度 防止滚动条遮盖内容
-        grid = event.GetEventObject()  # 获取事件的发送者
-        self._on_changed_size_(grid)
-        self.layout.Layout()
+        # grid = event.GetEventObject()  # 获取事件的发送者
+        self._on_changed_size_()
         event.Skip()
 
     def _on_size(self, event):
         # 配合改变高度
         w, _ = event.GetSize()
-        _, h1 = self.header.GetSize()
-        self.header.SetMinSize((w, h1))
-        self.header.SetMaxSize((w, h1))
-        self.header.SetSize(w, h1)
-        # self.subject.SetMinSize((w, -1))
-        # self.subject.SetMaxSize((w, -1))
-        self._on_changed_size_(self.header)
+        _, h = self.header.GetSize()
+        self.header.SetSize(w, h)
+        self._on_changed_size_()
         event.Skip()
 
     def SetFont(self, font: wx.Font):
@@ -219,7 +233,6 @@ class GridWithHeader(wx.Panel):
     def HideRowLabels(self):
         self.header.HideRowLabels()
         self.subject.HideRowLabels()
-        self._isRowLabelsVisable = 0
 
     def SetHeader(self, data: list):
         self.header.SetData(data)
@@ -228,10 +241,10 @@ class GridWithHeader(wx.Panel):
         self.subject.SetData(data)
 
     def SetHeaderLabels(self, labels: List[str]):
-        self.header.dataBase.SetColLabels(labels)
+        self.header.dataBase.SetRowLabels(labels)
 
     def SetSubjectLabels(self, labels: List[str]):
-        self.subject.dataBase.SetColLabels(labels)
+        self.subject.dataBase.SetRowLabels(labels)
 
 
-__all__= ['DataBaseList', 'Grid', 'GridWithHeader', 'gridlib']
+__all__= ['DataBaseList', 'Grid', 'GridWithHeader']
