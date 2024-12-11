@@ -28,7 +28,8 @@ class DataBaseList(gridbase.DataBase):
     def __init__(self,
                  data: Union[List[list], list, Tuple[int, ...], None] = None,
                  rowlabels: Union[List[str], None] = None,
-                 collabels: Union[List[str], None] = None) -> None:
+                 collabels: Union[List[str], None] = None,
+                 show_format: Union[str, None] = None) -> None:
         super(DataBaseList, self).__init__()
         if data is None:
             data = (3, 3)
@@ -39,6 +40,7 @@ class DataBaseList(gridbase.DataBase):
             self.SetRowLabels(rowlabels)
         if collabels is not None:
             self.SetColLabels(collabels)
+        self.SetShowFormat(show_format)
 
     def GetNumberRows(self) -> int:
         return len(self.data)
@@ -59,8 +61,15 @@ class DataBaseList(gridbase.DataBase):
         else:
             raise TypeError(f'{self.__class__}: data type must be list[list]')
 
-    def GetValueFunc(self, data: List[list], row: int, col: int):
-        return str(data[row][col])
+    def GetValueFunc(self, data: List[list], row: int, col: int) -> Union[float, complex, str]:
+        val = data[row][col]
+        try:
+            val = complex(val)
+            if -5e-16 < val.imag < 5e16:
+                val = val.real
+            return val
+        except:
+            return str(val)
 
     def SetValueFunc(self, data: List[list], row: int, col: int, value) -> None:
         data[row][col] = value

@@ -8,7 +8,7 @@ Grid
 GridWithHeader
     带表头的 Grid  两个 Grid 的组合
 """
-from typing import List, Tuple, Optional, Iterable, Literal
+from typing import List, Tuple, Optional, Iterable, Literal, Union
 
 import wx
 import wx.grid as gridlib
@@ -119,6 +119,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
     data: List[list]
     rowlabels: Optional[List[str]] = None
     collabels: Optional[List[str]] = None
+    show_format: Optional[str] = None  # example: '{:.6f}'
 
     def __init__(self):
         super(DataBase, self).__init__()
@@ -220,10 +221,10 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         ...
 
-    def GetValueFunc(self, data, row: int, col: int) -> str:
+    def GetValueFunc(self, data, row: int, col: int) -> Union[str, float, int, complex]:
         """
         Override this method to get the value of the cell at the given row and
-        col. The returned value is expected to be a string.
+        col. The returned value is expected to be a string or number.
 
         Parameters
         ----------
@@ -236,13 +237,13 @@ class DataBase(gridlib.GridTableBase):  # 基类
 
         Returns
         -------
-        str
-            The value of the cell as a string.
+        str | float | int | complex
+            The value of the cell as a string or number.
 
         example
         -------
-        >>> def GetValueFunc(self, data, row: int, col: int) -> str:
-        >>>     return str(data[row][col])
+        >>> def GetValueFunc(self, data, row: int, col: int) -> Union[str, float, int, complex]:
+        >>>     return data[row][col]
         """
         ...
 
@@ -572,9 +573,17 @@ class DataBase(gridlib.GridTableBase):  # 基类
         If the cell contains an error, the method returns an empty string.
         """
         try:
-            return self.GetValueFunc(self.data, row, col)
-        except:
+            v = self.GetValueFunc(self.data, row, col)
+        except Exception as e:
+            print(e)
             return ''
+        if self.show_format is None:
+            return str(v)
+        try:
+            return self.show_format.format(v)
+        except Exception as e:
+            print(e)
+            return str(v)
 
     def SetData(self, data) -> None:
         """
@@ -775,6 +784,25 @@ class DataBase(gridlib.GridTableBase):  # 基类
         if self.collabels:
             return self.collabels[col]
         return super().GetColLabelValue(col)
+
+    def SetShowFormat(self, show_format: Optional[str]) -> None:
+        """
+        Set the format string used to display values in the grid.
+
+        Parameters
+        ----------
+        show_format : str
+            The format string. This can be any valid format string that can be
+            used with the `str.format()` method. The format string is used to
+            format the value of each cell in the grid for display purposes only.
+            The actual value stored in the grid is not changed.
+
+        Notes
+        -----
+        If the format string is None, the actual value of the cell is used
+        without modification.
+        """
+        self.show_format = show_format
 
     def IsEmptyCell(self, row: int, col: int) -> bool:
         """
@@ -1150,8 +1178,8 @@ class GridBase(gridlib.Grid):
             for i in range(len(ls1)):
                 for j in range(len(ls1[i])):
                     self.dataBase.data[i + x][j + y] = ls1[i][j]
-            self.dataBase.ValuesUpdated()  # 通知数据已经更新
             # self.AutoSizeRows()
+            self.dataBase.ValuesUpdated()  # 通知数据已经更新
             self.ForceRefresh()
 
     def _OnCut(self, event):
@@ -1211,6 +1239,15 @@ class GridBase(gridlib.Grid):
 
 
 #endregion
+
+    def SetColLabels(self, collabels: Iterable) -> None:
+        self.dataBase.SetColLabels(collabels)
+
+    def SetRowLabels(self, rowlabels: Iterable) -> None:
+        self.dataBase.SetRowLabels(rowlabels)
+
+    def SetShowFormat(self, show_format: Optional[str]) -> None:
+        self.dataBase.SetShowFormat(show_format)
 
 #tag 实现并覆盖内部方法
 

@@ -12,7 +12,7 @@ GridWithHeader
 from typing import List, Tuple, Union
 
 import wx
-from numpy import asarray, char, delete, insert, ndarray, newaxis
+from numpy import asarray, char, delete, insert, ndarray, complex128, float64
 
 from . import gridbase
 
@@ -26,7 +26,8 @@ class DataBaseNP(gridbase.DataBase):
                  data: Union[ndarray, char.chararray, list, tuple, None] = None,
                  str_len: int = 10,
                  rowlabels: Union[List[str], None] = None,
-                 collabels: Union[List[str], None] = None):
+                 collabels: Union[List[str], None] = None,
+                 show_format: Union[str, None] = None):
         super(DataBaseNP, self).__init__()
         if data is None:
             data = (3, 3)
@@ -47,6 +48,7 @@ class DataBaseNP(gridbase.DataBase):
             self.SetRowLabels(rowlabels)
         if collabels is not None:
             self.SetColLabels(collabels)
+        self.SetShowFormat(show_format)
 
     def _set_array(self, obj):
         return char.asarray(obj, self._slen, unicode=True)
@@ -56,7 +58,7 @@ class DataBaseNP(gridbase.DataBase):
         if arr.ndim == 0:
             return arr.reshape(1, 1)
         elif arr.ndim == 1:
-            return arr[:, newaxis]
+            return arr[:, None]
         elif arr.ndim == 2:
             return arr
         else:
@@ -74,8 +76,15 @@ class DataBaseNP(gridbase.DataBase):
             data = self.SetDataFunc(data)
         data[row, col] = value
 
-    def GetValueFunc(self, data: char.chararray, row: int, col: int) -> str:
-        return str(data[row, col])
+    def GetValueFunc(self, data: char.chararray, row: int, col: int) -> Union[str, float64, complex128]:
+        val = data[row, col]
+        try:
+            val = complex128(val)
+            if -5e-16 < val.imag < 5e16:
+                val = val.real
+            return val
+        except:
+            return str(val)
 
     def DeleteRowsFunc(self, data: char.chararray, pos: int, numRows: int) -> char.chararray:
         return delete(data, list(range(pos, pos + numRows)), axis=0)
