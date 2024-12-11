@@ -20,11 +20,10 @@ from . import gridbase
 class DataBaseNP(gridbase.DataBase):
 
     data: char.chararray
-    _slen: int
+    _slen: int = 6
 
     def __init__(self,
                  data: Union[ndarray, char.chararray, list, tuple, None] = None,
-                 str_len: int = 10,
                  rowlabels: Union[List[str], None] = None,
                  collabels: Union[List[str], None] = None,
                  show_format: Union[str, None] = None):
@@ -35,14 +34,6 @@ class DataBaseNP(gridbase.DataBase):
             if len(data) != 2:
                 raise ValueError(f'{self.__class__}.data: The length of the tuple must be 2')
             data = gridbase.build_empty(*data)
-        if not isinstance(str_len, int):
-            raise TypeError(f'{self.__class__}: str_len must be int')
-        if str_len < 1:
-            raise ValueError(f'{self.__class__}: str_len must > 0')
-        data = asarray(data, str)
-        dtype = data.dtype
-        slen = dtype.itemsize // dtype.alignment
-        self._slen = slen if slen > str_len else str_len
         self.data = self.SetDataFunc(data)
         if rowlabels is not None:
             self.SetRowLabels(rowlabels)
@@ -53,8 +44,14 @@ class DataBaseNP(gridbase.DataBase):
     def _set_array(self, obj):
         return char.asarray(obj, self._slen, unicode=True)
 
+    def check_slen(self, data):
+        data = asarray(data, str)
+        dtype = data.dtype
+        self._slen = max(self._slen, dtype.itemsize // dtype.alignment)
+        return data
+
     def SetDataFunc(self, obj) -> char.chararray:
-        arr = self._set_array(obj)
+        arr = self._set_array(self.check_slen(obj))
         if arr.ndim == 0:
             return arr.reshape(1, 1)
         elif arr.ndim == 1:
