@@ -17,7 +17,7 @@ from . import gridbase
 
 
 def list_transpose(x: List[list]):
-    return [list(i) for i in zip(*x)]
+    return list(map(list, zip(*x)))
 
 
 class DataBaseList(gridbase.DataBase):

@@ -147,10 +147,10 @@ class DataBase(gridlib.GridTableBase):  # 基类
         int
             The number of rows in your data.
 
-        example
+        Example
         -------
         >>> def GetNumberRows(self):
-        >>>     return len(self.data)
+        ...     return len(self.data)
         """
         ...
 
@@ -163,10 +163,10 @@ class DataBase(gridlib.GridTableBase):  # 基类
         int
             The number of columns in your data.
 
-        example
+        Example
         -------
         >>> def GetNumberCols(self):
-        >>>     return len(self.data[0])
+        ...     return len(self.data[0])
         """
         ...
 
@@ -187,14 +187,14 @@ class DataBase(gridlib.GridTableBase):  # 基类
             values to `self.data`, which will be passed 
             to other methods, the array dimensions must be 2
 
-        example
+        Example
         -------
         >>> def SetDataFunc(self, data):
-        >>>     if not isinstance(data, list):
-        >>>         raise TypeError('data type must be list')
-        >>>     if any([not isinstance(i, list) for i in data]):
-        >>>         raise TypeError('data type must be list[list]')
-        >>>     return data
+        ...     if not isinstance(data, list):
+        ...         raise TypeError('data type must be list')
+        ...     if any([not isinstance(i, list) for i in data]):
+        ...         raise TypeError('data type must be list[list]')
+        ...     return data
         """
         ...
 
@@ -214,10 +214,10 @@ class DataBase(gridlib.GridTableBase):  # 基类
         value : str or any
             The value of the cell. If called from the GUI, this will be a string.
 
-        example
+        Example
         -------
         >>> def SetValueFunc(self, data, row: int, col: int, value):
-        >>>     data[row][col] = value
+        ...     data[row][col] = value
         """
         ...
 
@@ -240,10 +240,10 @@ class DataBase(gridlib.GridTableBase):  # 基类
         str | float | int | complex
             The value of the cell as a string or number.
 
-        example
+        Example
         -------
         >>> def GetValueFunc(self, data, row: int, col: int) -> Union[str, float, int, complex]:
-        >>>     return data[row][col]
+        ...     return data[row][col]
         """
         ...
 
@@ -268,15 +268,15 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        example
+        Example
         -------
         >>> # if isinstance(data, list)
         >>> def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
-        >>>     return data[:pos] + data[pos + numRows:]
+        ...     return data[:pos] + data[pos + numRows:]
         >>>
         >>> # if isinstance(data, ndarray)
         >>> def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
-        >>>     return np.delete(data, list(range(pos, pos + numRows)), axis=0)
+        ...     return np.delete(data, list(range(pos, pos + numRows)), axis=0)
         """
         ...
 
@@ -301,18 +301,18 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        example
+        Example
         -------
         >>> # if isinstance(data, list)
         >>> def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
-        >>>     ncols = len(data[0])
-        >>>     empty = [[''] * ncols for _ in range(numRows)]
-        >>>     return data[:pos] + empty + data[pos:]
+        ...     ncols = len(data[0])
+        ...     empty = [[''] * ncols for _ in range(numRows)]
+        ...     return data[:pos] + empty + data[pos:]
         >>>
         >>> # if isinstance(data, ndarray)
         >>> def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
-        >>>     empty = np.array([[''] * data.shape[1] for _ in range(numRows)]) 
-        >>>     return np.insert(data, pos, empty, axis=0)
+        ...     empty = np.array([[''] * data.shape[1] for _ in range(numRows)]) 
+        ...     return np.insert(data, pos, empty, axis=0)
         """
         ...
 
@@ -335,17 +335,17 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        example
+        Example
         -------
         >>> # if isinstance(data, list)
         >>> def AppendRowsFunc(self, data, numRows: int = 1):
-        >>>     ncols = len(data[0])
-        >>>     return data + [[''] * ncols for _ in range(numRows)]
+        ...     ncols = len(data[0])
+        ...     return data + [[''] * ncols for _ in range(numRows)]
         >>>
         >>> # if isinstance(data, ndarray)
         >>> def AppendRowsFunc(self, data, numRows: int = 1):
-        >>>     empty = np.array([[''] * data.shape[1] for _ in range(numRows)])
-        >>>     return np.append(data, empty, axis=0)
+        ...     empty = np.array([[''] * data.shape[1] for _ in range(numRows)])
+        ...     return np.append(data, empty, axis=0)
         """
         ...
 
@@ -370,23 +370,18 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        example
+        Example
         -------
         >>> # if isinstance(data, list)
         >>> def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
-        >>>
-        >>>     def list_transpose(data):
-        >>>         return [list(i) for i in zip(*data)]
-        >>>
-        >>>     dat = list_transpose(data)
-        >>>     dat_ = dat[:pos] + dat[pos + numCols:]
-        >>>     return list_transpose(dat_)
+        ...     dat = list(map(list, zip(*data)))
+        ...     dat_ = dat[:pos] + dat[pos + numCols:]
+        ...     return list(map(list, zip(*dat_)))
         >>>
         >>> # if isinstance(data, ndarray)
         >>> def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
-        >>>     return np.delete(data, list(range(pos, pos + numCols)), axis=1)
+        ...     return np.delete(data, list(range(pos, pos + numCols)), axis=1)
         """
-        ...
         ...
 
     def InsertColsFunc(self, data, pos: int, numCols: int = 1):
@@ -410,24 +405,20 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        example
+        Example
         -------
         >>> # if isinstance(data, list)
         >>> def InsertColsFunc(self, data, pos: int, numCols: int = 1):
-        >>>
-        >>>     def list_transpose(data):
-        >>>         return [list(i) for i in zip(*data)]
-        >>>
-        >>>     nrows = len(data)
-        >>>     empty = [[''] * nrows for _ in range(numCols)]
-        >>>     dat = list_transpose(data)
-        >>>     dat_ = dat[:pos] + empty + dat[pos:]
-        >>>     return list_transpose(dat_)
+        ...     nrows = len(data)
+        ...     empty = [[''] * nrows for _ in range(numCols)]
+        ...     dat = list(map(list, zip(*data)))
+        ...     dat_ = dat[:pos] + empty + dat[pos:]
+        ...     return list(map(list, zip(*dat_)))
         >>>
         >>> # if isinstance(data, ndarray)
         >>> def InsertColsFunc(self, data, pos: int, numCols: int = 1):
-        >>>     empty = np.array([[''] * data.shape[0] for _ in range(numCols)])
-        >>>     return np.insert(data, pos, empty, axis=1)
+        ...     empty = np.array([[''] * data.shape[0] for _ in range(numCols)])
+        ...     return np.insert(data, pos, empty, axis=1)
         """
         ...
 
@@ -450,23 +441,19 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        example
+        Example
         -------
         >>> # if isinstance(data, list)
         >>> def AppendColsFunc(self, data, numCols: int = 1):
-        >>>
-        >>>     def list_transpose(data):
-        >>>         return [list(i) for i in zip(*data)]
-        >>>
-        >>>     nrows = len(data)
-        >>>     empty = [[''] * nrows for _ in range(numCols)]
-        >>>     dat = list_transpose(data)
-        >>>     return list_transpose(dat + empty)
+        ...     nrows = len(data)
+        ...     empty = [[''] * nrows for _ in range(numCols)]
+        ...     dat = list(map(list, zip(*data)))
+        ...     return list(map(list, zip(*(dat + empty))))
         >>>
         >>> # if isinstance(data, ndarray)
         >>> def AppendColsFunc(self, data, numCols: int = 1):
-        >>>     empty = np.array([[''] * data.shape[1] for _ in range(numCols)])
-        >>>     return np.append(data, empty, axis=0)
+        ...     empty = np.array([[''] * data.shape[1] for _ in range(numCols)])
+        ...     return np.append(data, empty, axis=0)
         """
         ...
 
@@ -621,7 +608,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
             The value of the cell. This can be anything that can be
             converted to a string.
 
-        raises
+        Raises
         ------
         IndexError
             If the row or col is out of range
