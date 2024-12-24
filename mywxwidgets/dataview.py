@@ -16,13 +16,11 @@
 
 """
 import sys
-from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import wx.dataview as dv
 
 
-@dataclass(order=True, unsafe_hash=True)
 class DataRow:
     """
     用于存储 DataViewModel 中的数据
@@ -47,11 +45,9 @@ class DataRow:
         data 的索引赋值
     """
 
-    _ids: Tuple[int, ...] = field(compare=True)
-    data: List[str] = field(compare=False)
-
-    def __post_init__(self) -> None:
-        self._ids = tuple(self._ids)
+    def __init__(self, ids: Tuple[int, ...], data: List[str]) -> None:
+        self._ids = tuple(ids)
+        self.data = data
         # data [name, type, size, value]
 
     __slots__ = ['_ids', 'data']
@@ -72,11 +68,49 @@ class DataRow:
     def __len__(self) -> int:
         return len(self.data)
 
+    def __hash__(self):
+        return hash((self._ids, self.data))
+
     def __getitem__(self, index):
         return self.data[index]
 
     def __setitem__(self, index: int, value: str) -> None:
         self.data[index] = value
+
+    def __repr__(self) -> str:
+        return f'DataRow(ids={self._ids},\n\tdata={self.data})'
+
+    __str__ = __repr__
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, DataRow):
+            return False
+        return self.ids == other.ids
+    
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, DataRow):
+            return True
+        return self.ids != other.ids
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, DataRow):
+            raise TypeError
+        return self.ids < other.ids
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, DataRow):
+            raise TypeError
+        return self.ids > other.ids
+
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, DataRow):
+            raise TypeError
+        return self.ids <= other.ids
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, DataRow):
+            raise TypeError
+        return self.ids >= other.ids
 
 
 def compare_dr(dr1: DataRow, dr2: DataRow) -> None:

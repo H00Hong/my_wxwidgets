@@ -1014,8 +1014,10 @@ class GridBase(gridlib.Grid):
             pos=wx.DefaultPosition,
             size=wx.DefaultSize,
             style=wx.WANTS_CHARS,
-            name='GridBase') -> None:
+            name='GridBase',
+            read_only: bool = False) -> None:
         super(GridBase, self).__init__(parent, id, pos, size, style, name)
+        self._read_only = read_only
         self.dataBase = dataBase
         self.SetTable(self.dataBase, True)
         self._init_menu()
@@ -1043,6 +1045,7 @@ class GridBase(gridlib.Grid):
                                     Tuple[int, int]] = ((0, 0), (0, 0))
         self.Bind(EVT_GRID_RANGE_SELECT, self._OnRangeSelect)
         self.Bind(EVT_GRID_CELL_LEFT_CLICK, self._OnLeftClick)
+        self.Bind(EVT_GRID_CELL_LEFT_DCLICK, self._OnLeftDClick)
         # 绑定右键菜单事件
         self.Bind(EVT_GRID_CELL_RIGHT_CLICK, self._OnRightClick)
 
@@ -1055,6 +1058,8 @@ class GridBase(gridlib.Grid):
                 self.Bind(wx.EVT_MENU,
                           handler=getattr(self, '_On' + it0),
                           id=i)  # 绑定菜单项事件
+                if self._read_only and i > 10000:
+                    self.popupmenu.Enable(i, False)
         # 绑定键盘事件
         self.Bind(wx.EVT_KEY_DOWN, self._OnKeyDown)
 
@@ -1072,9 +1077,19 @@ class GridBase(gridlib.Grid):
         # 获取被点击的行和列
         row: int = event.GetRow()
         col: int = event.GetCol()
+        _selected_range = self._selected_range[0]
         self._selected_range = ((row, col), (row, col))
-        event.Skip()
+        if self._read_only and _selected_range == (row, col):
+            event.Skip(False)
+        else:
+            event.Skip(True)
         # print(self._selected_range)
+
+    def _OnLeftDClick(self, event):
+        if self._read_only:
+            event.Skip(False)
+        else:
+            event.Skip(True)
 
     def _OnKeyDown(self, event: wx.KeyEvent):
         key_code = event.GetKeyCode()  # 获取按键编码
@@ -1084,11 +1099,11 @@ class GridBase(gridlib.Grid):
         if modifiers == 2:  # 修饰符为ctrl
             if key_code == 67:  # ctrl+c
                 self._OnCopy(event)
-            elif key_code == 86:  # ctrl+v
+            elif key_code == 86 and not self._read_only:  # ctrl+v
                 self._OnPaste(event)
-            elif key_code == 88:  # ctrl+x
+            elif key_code == 88 and not self._read_only:  # ctrl+x
                 self._OnCut(event)
-        if modifiers == 0 and key_code == 127:  # 修饰符为空并且按下的是delete
+        if modifiers == 0 and key_code == 127 and not self._read_only:  # 修饰符为空并且按下的是delete
             self._OnDeleteValue(event)
         # if modifiers == 0 and key_code == 8:  # 修饰符为空并且按下的是backspace
         #     pass

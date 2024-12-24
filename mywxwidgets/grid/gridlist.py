@@ -114,10 +114,11 @@ class Grid(gridbase.GridBase):
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.WANTS_CHARS,
-                 name='Grid') -> None:
+                 name='Grid',
+                 read_only: bool = False) -> None:
         if not isinstance(dat, gridbase.DataBase):
             dat = DataBaseList(dat)
-        super().__init__(parent, dat, id, pos, size, style, name)
+        super().__init__(parent, dat, id, pos, size, style, name, read_only)
         # self.HideRowLabels()
         # self.HideColLabels()
 
