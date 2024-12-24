@@ -65,7 +65,7 @@ class DataBaseList(gridbase.DataBase):
         val = data[row][col]
         try:
             val = complex(val)
-            if -5e-16 < val.imag < 5e16:
+            if -5e-16 < val.imag < 5e-16:
                 val = val.real
             return val
         except:

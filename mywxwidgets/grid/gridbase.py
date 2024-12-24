@@ -568,8 +568,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
             return str(v)
         try:
             return self.show_format.format(v)
-        except Exception as e:
-            print(e)
+        except:
             return str(v)
 
     def SetData(self, data) -> None:
