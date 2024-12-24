@@ -22,20 +22,20 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 import wx.dataview as dv
 
 
-@dataclass(order=True, unsafe_hash=True, slots=True)
+@dataclass(order=True, unsafe_hash=True)
 class DataRow:
     """
     用于存储 DataViewModel 中的数据
     以行为单位
 
-    attributes
-    ---------
+    Attributes
+    ----------
     ids: Tuple[int, ...]
         数据行的 id , 可接受一个整数序列
     data: List[str]
         数据行的值, 应为一个字符串列表
 
-    methods
+    Methods
     -------
     - lid--property
         id 的级别 即 length
@@ -53,6 +53,8 @@ class DataRow:
     def __post_init__(self) -> None:
         self._ids = tuple(self._ids)
         # data [name, type, size, value]
+
+    __slots__ = ['_ids', 'data']
 
     @property
     def ids(self) -> Tuple[int, ...]:
@@ -314,8 +316,7 @@ class DataViewModel(dv.DataViewModel):
 
             给`DataViewCtrl`调用时传入`DataViewItemArray`
 
-
-        Return
+        Returns
         -------
         int
             子节点数量
