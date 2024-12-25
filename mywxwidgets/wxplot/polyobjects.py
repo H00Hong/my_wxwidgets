@@ -68,28 +68,28 @@ class PolyMarker(PolyPoints):
 
     Parameters
     ----------
-    - points: list of `[x, y]` values
+    points: list of `[x, y]` values
         The marker coordinates.
-    - colour: `wx.Colour` | str
+    colour: `wx.Colour` | str
         The marker outline colour.
-    - width: float
+    width: float
         The marker outline width.
-    - size: float
+    size: float
         The marker size.
-    - fillcolour: `wx.Colour` | str | None
+    fillcolour: `wx.Colour` | str | None
         The marker fill colour. If None, the outline colour is used.
-    - fillstyle: {'solid', 'transparent'}
+    fillstyle: {'solid', 'transparent'}
         The marker fill style.
-    - marker: {'circle', 'dot', 'square', 'triangle', 'triangle_down', 'cross', 'plus'}
+    marker: {'circle', 'dot', 'square', 'triangle', 'triangle_down', 'cross', 'plus'}
         The marker type.
-        - circle: A circle of diameter `size`
-        - dot: A dot. Does not have a size.
-        - square: A square with side length `size`
-        - triangle: An upward-pointed triangle
-        - triangle_down: A downward-pointed triangle
-        - cross: An "X" shape
-        - plus: A "+" shape
-    - legend: str
+            'circle': A circle of diameter `size`
+            'dot': A dot. Does not have a size.
+            'square': A square with side length `size`
+            'triangle': An upward-pointed triangle
+            'triangle_down': A downward-pointed triangle
+            'cross': An "X" shape
+            'plus': A "+" shape
+    legend: str
         The legend string.
 
     warning
@@ -215,46 +215,46 @@ class PolyLine(PolyMarker):
 
     Parameters
     ----------
-    - points : list of ``[x, y]`` values
+    points : list of ``[x, y]`` values
         The points that make up the line
-    - colour : `wx.Colour` | str
+    colour : `wx.Colour` | str
         The colour of the line
-    - width : float
+    width : float
         The width of the line
-    - style : {'-', '--', ':', '__', '-.'}
+    style : {'-', '--', ':', '__', '-.'}
         The line style
-        - '-': Solid line
-        - '--': Long dashed line
-        - ':': Dotted line
-        - '-.': Dot dash line
-        - '__': Short dashed line
-    - legend : str
+            '-': Solid line
+            '--': Long dashed line
+            ':': Dotted line
+            '-.': Dot dash line
+            '__': Short dashed line
+    legend : str
         The legend string
-    - drawstyle : {'line', 'steps-pre', 'steps-post', 'steps-mid-x', 'steps-mid-y'}
+    drawstyle : {'line', 'steps-pre', 'steps-post', 'steps-mid-x', 'steps-mid-y'}
         The type of connector to use
-        - line: Draws an straight line between consecutive points
-        - steps-pre: Draws a line down from point A and then right to point B
-        - steps-post: Draws a line right from point A and then down to point B
-        - steps-mid-x: Draws a line horizontally to half way between A and B, 
-                       then draws a line vertically, then again horizontally to point B.
-        - steps-mid-y: Draws a line vertically to half way between A and B, 
-                       then draws a line horizonatally, then again vertically to point B.
-                       *Note: This typically does not look very good*
-    - marker : {'circle', 'dot', 'square', 'triangle', 'triangle_down', 'cross', 'plus', 'none'}
+            'line': Draws an straight line between consecutive points
+            'steps-pre': Draws a line down from point A and then right to point B
+            'steps-post': Draws a line right from point A and then down to point B
+            'steps-mid-x': Draws a line horizontally to half way between A and B, 
+                          then draws a line vertically, then again horizontally to point B.
+            'steps-mid-y': Draws a line vertically to half way between A and B, 
+                          then draws a line horizonatally, then again vertically to point B.
+                          *Note: This typically does not look very good*
+    marker : {'circle', 'dot', 'square', 'triangle', 'triangle_down', 'cross', 'plus', 'none'}
         The type of marker to use. If `'none'`, no marker is drawn
-        - none: No marker
-        - circle: A circle of diameter `size`
-        - dot: A dot. Does not have a size.
-        - square: A square with side length `size`
-        - triangle: An upward-pointed triangle
-        - triangle_down: A downward-pointed triangle
-        - cross: An "X" shape
-        - plus: A "+" shape
-    - size : float
+            'none': No marker
+            'circle': A circle of diameter `size`
+            'dot': A dot. Does not have a size.
+            'square': A square with side length `size`
+            'triangle': An upward-pointed triangle
+            'triangle_down': A downward-pointed triangle
+            'cross': An "X" shape
+            'plus': A "+" shape
+    size : float
         The size of the marker
-    - fillcolour : `wx.Colour` | str | None
+    fillcolour : `wx.Colour` | str | None
         The fill colour of the marker. If None, the outline colour is used
-    - fillstyle : {'solid', 'transparent'}
+    fillstyle : {'solid', 'transparent'}
         The fill style of the marker
         
     
@@ -413,36 +413,36 @@ class PolySpline(PolyLine):
     
     Parameters
     ----------
-    - points : list of `[x, y]` values
+    points : list of `[x, y]` values
         The points that make up the spline
-    - colour : `wx.Colour` | str
+    colour : `wx.Colour` | str
         The colour of the line
-    - width : float
+    width : float
         The width of the line
-    - style : {'-', '--', ':', '__', '-.'}
+    style : {'-', '--', ':', '__', '-.'}
         The line style
-        - '-': Solid line
-        - '--': Long dashed line
-        - ':': Dotted line
-        - '-.': Dot dash line
-        - '__': Short dashed line
-    - legend : str
+            '-': Solid line
+            '--': Long dashed line
+            ':': Dotted line
+            '-.': Dot dash line
+            '__': Short dashed line
+    legend : str
         The legend string
-    - marker : {'circle', 'dot', 'square', 'triangle', 'triangle_down', 'cross', 'plus', 'none'}
+    marker : {'circle', 'dot', 'square', 'triangle', 'triangle_down', 'cross', 'plus', 'none'}
         The type of marker to use. If `'none'`, no marker is drawn
-        - none: No marker
-        - circle: A circle of diameter `size`
-        - dot: A dot. Does not have a size.
-        - square: A square with side length `size`
-        - triangle: An upward-pointed triangle
-        - triangle_down: A downward-pointed triangle
-        - cross: An "X" shape
-        - plus: A "+" shape
-    - size : float
+            'none': No marker
+            'circle': A circle of diameter `size`
+            'dot': A dot. Does not have a size.
+            'square': A square with side length `size`
+            'triangle': An upward-pointed triangle
+            'triangle_down': A downward-pointed triangle
+            'cross': An "X" shape
+            'plus': A "+" shape
+    size : float
         The size of the marker
-    - fillcolour : `wx.Colour` | str | None
+    fillcolour : `wx.Colour` | str | None
         The fill colour of the marker. If None, the outline colour is used
-    - fillstyle : {'solid', 'transparent'}
+    fillstyle : {'solid', 'transparent'}
         The fill style of the marker
 
     .. warning::
@@ -585,26 +585,26 @@ class PolyBars(PolyBarsBase):
 
     Parameters
     ----------
-    - points : list of `(center, height)` values
+    points : list of `(center, height)` values
         The points that make up the line
-    - barwidth : float | list[float]
+    barwidth : float | list[float]
         The width of the bars
-    - edgecolour : `wx.Colour` | str
+    edgecolour : `wx.Colour` | str
         The colour of the line
-    - edgewidth : float
+    edgewidth : float
         The width of the edges
-    - edgestyle : {'-', '--', ':', '__', '-.'}
+    edgestyle : {'-', '--', ':', '__', '-.'}
         The line style
-        - '-': Solid line
-        - '--': Long dashed line
-        - ':': Dotted line
-        - '-.': Dot dash line
-        - '__': Short dashed line
-    - fillcolour : `wx.Colour` | str
+            '-': Solid line
+            '--': Long dashed line
+            ':': Dotted line
+            '-.': Dot dash line
+            '__': Short dashed line
+    fillcolour : `wx.Colour` | str
         The fill colour of the bars.
-    - fillstyle : {'solid', 'transparent'}
+    fillstyle : {'solid', 'transparent'}
         The fill style of the marker
-    - legend : str
+    legend : str
         The legend string
 
     .. important::
@@ -682,26 +682,26 @@ class PolyHistogram(PolyBarsBase):
 
     Parameters
     ----------
-    - hist : sequence of ``y`` values that define the heights of the bars
+    hist : sequence of ``y`` values that define the heights of the bars
         The histogram data
-    - binspec : sequence of ``x`` values that define the edges of the bins
+    binspec : sequence of ``x`` values that define the edges of the bins
         The bin specification
-    - edgecolour : `wx.Colour` | str
+    edgecolour : `wx.Colour` | str
         The colour of the line
-    - edgewidth : float
+    edgewidth : float
         The width of the edges
-    - edgestyle : {'-', '--', ':', '__', '-.'}
+    edgestyle : {'-', '--', ':', '__', '-.'}
         The line style
-        - '-': Solid line
-        - '--': Long dashed line
-        - ':': Dotted line
-        - '-.': Dot dash line
-        - '__': Short dashed line
-    - fillcolour : `wx.Colour` | str
+            '-': Solid line
+            '--': Long dashed line
+            ':': Dotted line
+            '-.': Dot dash line
+            '__': Short dashed line
+    fillcolour : `wx.Colour` | str
         The fill colour of the bars.
-    - fillstyle : {'solid', 'transparent'}
+    fillstyle : {'solid', 'transparent'}
         The fill style of the marker
-    - legend : str
+    legend : str
         The legend string
 
     .. tip::
@@ -787,20 +787,20 @@ class PolyBoxPlot(PolyPoints):
 
     Parameters
     ----------
-    - points : sequence of int or float
+    points : sequence of int or float
         Raw data to create a box plot from.
-    - colour : `wx.Colour` | str
+    colour : `wx.Colour` | str
         The colour of the line
-    - width : float
+    width : float
         The width of the line
-    - style : {'-', '--', ':', '__', '-.'}
+    style : {'-', '--', ':', '__', '-.'}
         The line style
-        - '-': Solid line
-        - '--': Long dashed line
-        - ':': Dotted line
-        - '-.': Dot dash line
-        - '__': Short dashed line
-    - legend : str
+            '-': Solid line
+            '--': Long dashed line
+            ':': Dotted line
+            '-.': Dot dash line
+            '__': Short dashed line
+    legend : str
         The legend string
 
     .. note::
@@ -1124,13 +1124,13 @@ class PlotGraphics(_PlotGraphics):
 
     Parameters
     ----------
-    - objects : Sequence[PolyPoints]
+    objects : Sequence[PolyPoints]
         The Poly objects to plot
-    - title : str
+    title : str
         The title shown at the top of the graph
-    - xLabel : str
+    xLabel : str
         The x-axis label
-    - yLabel : str
+    yLabel : str
         The y-axis label
 
     .. warning::
