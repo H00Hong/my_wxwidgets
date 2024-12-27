@@ -92,8 +92,8 @@ class PolyMarker(PolyPoints):
     legend: str
         The legend string.
 
-    warning
-    ----------
+    Warning
+    -------
        All methods except ``__init__`` are private.
     """
     _fillstyle = BRUSHSTYLE
@@ -258,8 +258,8 @@ class PolyLine(PolyMarker):
         The fill style of the marker
         
     
-    .. warning::
-
+    Warning
+    -------
        All methods except ``__init__`` are private.
     """
     _style = LINESTYLE
@@ -329,12 +329,14 @@ class PolyLine(PolyMarker):
         """
         Draw the lines with marker.
 
-        :param dc: The DC to draw on.
-        :type dc: :class:`wx.DC`
-        :param printerScale:
-        :type printerScale: float
-        :param coord: The range of coordinate
-        :type coord: NDArray | None
+        Parameters
+        ----------
+        dc : `wx.DC`
+            The `wx.DC` to draw on.
+        printerScale : float
+            The printer scale.
+        coord : NDArray | None
+            The range of coordinate.
         """
         self._draw(dc, printerScale, coord)
         if self.attributes['marker'] != 'none':
@@ -353,8 +355,17 @@ class PolyLine(PolyMarker):
         """
         Get the Width and Height of the symbol.
 
-        :param printerScale:
-        :type printerScale: float
+        Parameters
+        ----------
+        dc : `wx.DC`
+            The `wx.DC` to draw on.
+        printerScale : float
+            The printer scale.
+
+        Returns
+        -------
+        Tuple[float, float]
+            The width and height of the symbol.
         """
         a = printerScale * self._pointSize[0]
         h = self.attributes['width'] * a
@@ -367,14 +378,16 @@ class PolyLine(PolyMarker):
         """
         Calculates the path from coord1 to coord 2 along X and Y
 
-        :param dc: The DC to draw on.
-        :type dc: :class:`wx.DC`
-        :param coord1: The first coordinate in the coord pair
-        :type coord1: list, length 2: ``[x, y]``
-        :param coord2: The second coordinate in the coord pair
-        :type coord2: list, length 2: ``[x, y]``
-        :param drawstyle: The type of connector to use
-        :type drawstyle: str
+        Parameters
+        ----------
+        dc : `wx.DC`
+            The `wx.DC` to draw on.
+        coord1 : list, length 2: ``[x, y]``
+            The first coordinate in the coord pair.
+        coord2 : list, length 2: ``[x, y]``
+            The second coordinate in the coord pair.
+        drawstyle : str
+            The type of connector to use.
         """
         if drawstyle == 'line':
             # Straight line between points.
@@ -506,8 +519,8 @@ class PolyBarsBase(PolyPoints):
     """
     Base class for PolyBars and PolyHistogram.
 
-    .. warning::
-
+    Warning
+    -------
        All methods are private.
     """
     _edgestyle = LINESTYLE
@@ -1164,12 +1177,45 @@ class PlotGraphics(_PlotGraphics):
             symExt = (max(symExt[0], oSymExt[0]), max(symExt[1], oSymExt[1]))
         return symExt
 
-    def getLegendNames(self):
+    def getLegendNames(self) -> List[str]:
         """Returns list of legend names"""
-        # lst = [None] * len(self)
-        # for i in range(len(self)):
-        #     lst[i] = self.objects[i].getLegend()
         return [o.getLegend() for o in self.objects]
+
+    def setLogScale(self, logscale) -> None:
+        """Set the log scale boolean value."""
+        self.logScale = logscale
+
+    def setAbsScale(self, absscale) -> None:
+        """Set the abssolute scale boolean value."""
+        self.absScale = absscale
+
+    def setPrinterScale(self, scale) -> None:
+        """Thickens up lines and markers only for printing"""
+        self.printerScale = scale
+
+    def setXLabel(self, xLabel='') -> None:
+        """Set the X axis label on the graph"""
+        self.xLabel = xLabel
+
+    def setYLabel(self, yLabel='') -> None:
+        """Set the Y axis label on the graph"""
+        self.yLabel = yLabel
+
+    def setTitle(self, title='') -> None:
+        """Set the title at the top of graph"""
+        self.title = title
+
+    def getXLabel(self) -> str:
+        """Get X axis label string"""
+        return self.xLabel
+
+    def getYLabel(self) -> str:
+        """Get Y axis label string"""
+        return self.yLabel
+
+    def getTitle(self) -> str:
+        """Get the title at the top of graph"""
+        return self.title
 
 
 __all__ = [

@@ -15,9 +15,9 @@ from ._ico import *
 from .polyobjects import (LINESTYLE, PlotGraphics, PlotPrintout, PolyBoxPlot,
                           PolyLine, PolyMarker)
 
-ID_HOME = 10000
-ID_DATAMARKER = 10001
-ID_SAVE = 10003
+ID_HOME = 20000
+ID_DATAMARKER = 20001
+ID_SAVE = 20003
 
 
 def base64_to_bitmap(base64_str: str, size=()) -> wx.Bitmap:
@@ -259,17 +259,29 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        ls : {'-', '--', ':', '__', '-.'}
+        ls : {'-', '--', ':', '__', '-.'}, default ':'
             Line style of grid pen.
-            - '-': Solid line
-            - '--': Long dashed line
-            - ':': Dotted line
-            - '-.': Dot dash line
-            - '__': Short dashed line
-        colour : `wx.Colour` | str | tuple[int, int, int]
+                '-': Solid line
+                '--': Long dashed line
+                ':': Dotted line
+                '-.': Dot dash line
+                '__': Short dashed line
+        colour : `wx.Colour` | str | tuple[int, int, int], default (180, 180, 180)
             Colour of grid pen.
         """
         self._setPen('_gridPen', ls, colour)
+
+    @property
+    def gridPen(self):
+        """The :class:`wx.Pen` used to draw the grid lines on the plot."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.gridPen`
+        return self._gridPen
+
+    @gridPen.setter
+    def gridPen(self, pen):
+        if not isinstance(pen, wx.Pen):
+            raise TypeError('pen must be an instance of wx.Pen')
+        self._gridPen = pen
 
     def SetDiagonalPen(self, ls: Literal['-', '--', ':', '__', '-.'] = ':', colour=wx.BLUE) -> None:
         """
@@ -277,17 +289,29 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        ls : {'-', '--', ':', '__', '-.'}
+        ls : {'-', '--', ':', '__', '-.'}, default ':'
             Line style of diagonal pen.
-            - '-': Solid line
-            - '--': Long dashed line
-            - ':': Dotted line
-            - '-.': Dot dash line
-            - '__': Short dashed line
-        colour : `wx.Colour` | str | tuple of 3 ints
+                '-': Solid line
+                '--': Long dashed line
+                ':': Dotted line
+                '-.': Dot dash line
+                '__': Short dashed line
+        colour : `wx.Colour` | str | tuple of 3 ints, default `wx.BLUE`
             Colour of diagonal pen.
         """
         self._setPen('_diagonalPen', ls, colour)
+
+    @property
+    def diagonalPen(self):
+        """The :class:`wx.Pen` used to draw the diagonal lines on the plot."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.diagonalPen`
+        return self._diagonalPen
+
+    @diagonalPen.setter
+    def diagonalPen(self, pen):
+        if not isinstance(pen, wx.Pen):
+            raise TypeError('pen must be an instance of wx.Pen')
+        self._diagonalPen = pen
 
     def SetCenterLinePen(self, ls: Literal['-', '--', ':', '__', '-.'] = ':', colour=wx.RED) -> None:
         """
@@ -295,17 +319,29 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        ls : {'-', '--', ':', '__', '-.'}
+        ls : {'-', '--', ':', '__', '-.'}, default ':'
             Line style of center line pen.
-            - '-': Solid line
-            - '--': Long dashed line
-            - ':': Dotted line
-            - '-.': Dot dash line
-            - '__': Short dashed line
-        colour : `wx.Colour` | str | tuple of 3 ints
+                '-': Solid line
+                '--': Long dashed line
+                ':': Dotted line
+                '-.': Dot dash line
+                '__': Short dashed line
+        colour : `wx.Colour` | str | tuple of 3 ints, default `wx.RED`
             Colour of center line pen.
         """
         self._setPen('_centerLinePen', ls, colour)
+
+    @property
+    def centerLinePen(self):
+        """The :class:`wx.Pen` used to draw the center lines on the plot."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.centerLinePen`
+        return self._centerLinePen
+
+    @centerLinePen.setter
+    def centerLinePen(self, pen):
+        if not isinstance(pen, wx.Pen):
+            raise TypeError('pen must be an instance of wx.Pen')
+        self._centerLinePen = pen
 
     def SetAxesPen(self, ls: Literal['-', '--', ':', '__', '-.'] = ':', colour=wx.BLACK) -> None:
         """
@@ -313,17 +349,29 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        ls : {'-', '--', ':', '__', '-.'}
+        ls : {'-', '--', ':', '__', '-.'}, default ':'
             Line style of axes pen.
-            - '-': Solid line
-            - '--': Long dashed line
-            - ':': Dotted line
-            - '-.': Dot dash line
-            - '__': Short dashed line
-        colour : `wx.Colour` | str | tuple of 3 ints
+                '-': Solid line
+                '--': Long dashed line
+                ':': Dotted line
+                '-.': Dot dash line
+                '__': Short dashed line
+        colour : `wx.Colour` | str | tuple of 3 ints, default `wx.BLACK`
             Colour of axes pen.
         """
         self._setPen('_axesPen', ls, colour)
+
+    @property
+    def axesPen(self):
+        """The :class:`wx.Pen` used to draw the axes lines on the plot."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.axesPen`
+        return self._axesPen
+
+    @axesPen.setter
+    def axesPen(self, pen):
+        if not isinstance(pen, wx.Pen):
+            raise TypeError('pen must be an instance of wx.Pen')
+        self._axesPen = pen
 
     def SetTickPen(self, ls: Literal['-', '--', ':', '__', '-.'] = ':', colour=wx.BLACK) -> None:
         """
@@ -331,17 +379,29 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        ls : {'-', '--', ':', '__', '-.'}
+        ls : {'-', '--', ':', '__', '-.'}, default ':'
             Line style of tick pen.
-            - '-': Solid line
-            - '--': Long dashed line
-            - ':': Dotted line
-            - '-.': Dot dash line
-            - '__': Short dashed line
-        colour : `wx.Colour` | str | tuple of 3 ints
+                '-': Solid line
+                '--': Long dashed line
+                ':': Dotted line
+                '-.': Dot dash line
+                '__': Short dashed line
+        colour : `wx.Colour` | str | tuple of 3 ints, default `wx.BLACK`
             Colour of tick pen.
         """
         self._setPen('_tickPen', ls, colour)
+
+    @property
+    def tickPen(self):
+        """The :class:`wx.Pen` used to draw the tick marks on the plot."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.tickPen`
+        return self._tickPen
+
+    @tickPen.setter
+    def tickPen(self, pen):
+        if not isinstance(pen, wx.Pen):
+            raise TypeError('pen must be an instance of wx.Pen')
+        self._tickPen = pen
 
     def SetLogScale(self, logscale: Tuple[bool, bool] = (True, True)) -> None:
         """
@@ -349,7 +409,7 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        logscale : tuple of bools, length 2
+        logscale : tuple of bools, length 2, default `(True, True)`
             A tuple of `(x_axis_is_log_scale, y_axis_is_log_scale)` booleans.
         """
         if not isinstance(logscale, tuple) or len(logscale) != 2:
@@ -370,13 +430,26 @@ class PlotCanvas(wx.Panel):
         """
         return self._logScale
 
+    @property
+    def logScale(self):
+        """
+        The logScale value as a 2-tuple of bools:
+        ``(x_axis_is_log_scale, y_axis_is_log_scale)``.
+        """
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.logScale`
+        return self._logScale
+
+    @logScale.setter
+    def logScale(self, logscale: Tuple[bool, bool]):
+        self.SetLogScale(logscale)
+
     def SetAbsScale(self, absscale: Tuple[bool, bool] = (True, True)) -> None:
         """
         Set the abs scale boolean value. 绝对值刻度
 
         Parameters
         ----------
-        absscale : tuple of bools, length 2
+        absscale : tuple of bools, length 2, default `(True, True)`
             A tuple of `(x_axis_is_abs_scale, y_axis_is_abs_scale)` booleans.
         """
         if not isinstance(absscale, tuple) or len(absscale) != 2:
@@ -397,6 +470,19 @@ class PlotCanvas(wx.Panel):
         """
         return self._absScale
 
+    @property
+    def absScale(self):
+        """
+        The absScale value as a 2-tuple of bools:
+        ``(x_axis_is_abs_scale, y_axis_is_abs_scale)``.
+        """
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.absScale`
+        return self._absScale
+
+    @absScale.setter
+    def absScale(self, absscale: Tuple[bool, bool]):
+        self.SetAbsScale(absscale)
+
     def SetFontSizeAxis(self, point: int = 10) -> None:
         """Set the tick and axis label font size (default is 10 point)"""
         self._fontSizeAxis = point
@@ -405,28 +491,70 @@ class PlotCanvas(wx.Panel):
         """Get current tick and axis label font size in points"""
         return self._fontSizeAxis
 
+    @property
+    def fontSizeAxis(self):
+        """
+        The current tick and axis label font size in points.
+
+        Default is 10pt font.
+        """
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.fontSizeAxis`
+        return self._fontSizeAxis
+
+    @fontSizeAxis.setter
+    def fontSizeAxis(self, value: int):
+        self._fontSizeAxis = value
+
     def SetFontSizeTitle(self, point: int = 15) -> None:
         """Set title font size (default is 15 point)"""
         self._fontSizeTitle = point
 
     def GetFontSizeTitle(self) -> int:
-        """Get title font size (default is 15 point)"""
+        """Get title font size"""
         return self._fontSizeTitle
+
+    @property
+    def fontSizeTitle(self):
+        """
+        The current Title font size in points.
+
+        Default is 15pt font.
+        """
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.fontSizeTitle`
+        return self._fontSizeTitle
+
+    @fontSizeTitle.setter
+    def fontSizeTitle(self, pointsize: int):
+        self._fontSizeTitle = pointsize
 
     def SetFontSizeLegend(self, point: int = 8) -> None:
         """Set legend font size (default is 8 point)"""
         self._fontSizeLegend = point
 
     def GetFontSizeLegend(self) -> int:
-        """Get legend font size (default is 8 point)"""
+        """Get legend font size"""
         return self._fontSizeLegend
+
+    @property
+    def fontSizeLegend(self):
+        """
+        The current Legned font size in points.
+
+        Default is 8pt font.
+        """
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.fontSizeLegend`
+        return self._fontSizeLegend
+
+    @fontSizeLegend.setter
+    def fontSizeLegend(self, point: int):
+        self._fontSizeLegend = point
 
     def SetFontSizeLoc(self, point: int = 10) -> None:
         """Set toolbar location font size (default is 10 point)"""
         self._fontSizeLoc = point
 
     def GetFontSizeLoc(self) -> int:
-        """Get toolbar location font size (default is 10 point)"""
+        """Get toolbar location font size"""
         return self._fontSizeLoc
 
     def SetShowScrollbars(self, value: bool = True) -> None:
@@ -450,6 +578,18 @@ class PlotCanvas(wx.Panel):
     def GetShowScrollbars(self):
         """Get the showScrollbars value. 是否显示滚动条"""
         return self._sb_show
+
+    @property
+    def showScrollbars(self):
+        """
+        The current showScrollbars value.
+        """
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.showScrollbars`
+        return self._sb_show
+
+    @showScrollbars.setter
+    def showScrollbars(self, value):
+        self.SetShowScrollbars(value)
 
     def SetUseScientificNotation(self, value: bool = True) -> None:
         """Set the useScientificNotation value. 是否使用科学记数法"""
@@ -680,6 +820,16 @@ class PlotCanvas(wx.Panel):
         """Get the tickLength value."""
         return self._tickLength
 
+    @property
+    def tickLength(self):
+        """The length of the tick marks on an axis."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.tickLength`
+        return self._tickLength
+
+    @tickLength.setter
+    def tickLength(self, length: Sequence[float]):
+        self.SetTickLength(length)
+
     def GetTickLengthPrinterScale(self) -> Tuple[float, float]:
         """Get the tickLength value in printer scale."""
         return (3 * self.printerScale * self._tickLength[0],
@@ -691,6 +841,12 @@ class PlotCanvas(wx.Panel):
             raise TypeError('`value` must be boolean True or False')
         self._titleEnabled = value
         self.Redraw()
+
+    @property
+    def tickLengthPrinterScale(self):
+        """the tickLength value in printer scale."""
+        # 为了兼容 `wx.lib.plot.plotcanvas.PlotCanvas.tickLengthPrinterScale`
+        return self.GetTickLengthPrinterScale()
 
     def GetEnablePlotTitle(self) -> bool:
         """Get the enablePlotTitle value."""
@@ -704,10 +860,11 @@ class PlotCanvas(wx.Panel):
         ----------
         func : Callable | None
             The function of pointLabelFunc.
-            - If None, use the self._DefaultDrawPointLabel
-            - If Callable, use the custom pointLabelFunc
+                If None, use the self._DefaultDrawPointLabel
+                If Callable, use the custom pointLabelFunc
 
-        .. example::
+        Examples
+        --------
            func: `~PlotCanvas._DefaultDrawPointLabel`
         """
         if func is None:
@@ -758,13 +915,13 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        spectype: str, int, or length-2 sequence of floats Default is 'auto'.
+        spectype: str, int, or length-2 sequence of floats, Default 'auto'.
             xSpec value
-            - 'none' : shows no axis or tick mark values
-            - 'min' : shows min bounding box values
-            - 'auto' : rounds axis range to sensible values
-            - number : like 'min', but with number tick marks
-            - list or tuple : a list of (min, max) values. Must be length 2.
+                'none' : shows no axis or tick mark values
+                'min' : shows min bounding box values
+                'auto' : rounds axis range to sensible values
+                number : like 'min', but with number tick marks
+                list or tuple : a list of (min, max) values. Must be length 2.
 
         .. seealso::
            :attr:`~PlotCanvas.SetYSpec`
@@ -784,13 +941,13 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        spectype: str, real, or length-2 sequence of reals Default is 'auto'.
+        spectype: str, real, or length-2 sequence of reals, Default 'auto'.
             ySpec value
-            - 'none' : shows no axis or tick mark values
-            - 'min' : shows min bounding box values
-            - 'auto' : rounds axis range to sensible values
-            - number : like 'min', but with number tick marks
-            - list or tuple : a list of (min, max) values. Must be length 2.
+                'none' : shows no axis or tick mark values
+                'min' : shows min bounding box values
+                'auto' : rounds axis range to sensible values
+                number : like 'min', but with number tick marks
+                list or tuple : a list of (min, max) values. Must be length 2.
 
         .. seealso::
            :attr:`~PlotCanvas.SetXSpec`
@@ -814,7 +971,7 @@ class PlotCanvas(wx.Panel):
         """
         Get the xMaxRange value.
         The plots' maximum X range as a `numpy.ndarray` of `(min, max)`.
-        
+
         .. seealso::
            :attr:`~PlotCanvas.GetYMaxRange`
         """
@@ -834,7 +991,7 @@ class PlotCanvas(wx.Panel):
         """
         Get the yMaxRange value.
         The plots' maximum Y range as `numpy.ndarray` of `(min, max)`.
-        
+
         .. seealso::
            :attr:`~PlotCanvas.GetXMaxRange`
         """
@@ -1081,11 +1238,18 @@ class PlotCanvas(wx.Panel):
     def _Draw(self, graphics: PlotGraphics, xAxis=None, yAxis=None, dc=None) -> None:
         """
         Draw objects in graphics with specified x and y axis.
-        graphics- instance of PlotGraphics with list of PolyXXX objects
-        xAxis - tuple with (min, max) axis range to view
-        yAxis - same as xAxis
-        dc - drawing context - doesn't have to be specified.
-        If it's not, the offscreen buffer is used
+
+        Parameters
+        ----------
+        graphics : `PlotGraphics`
+            instance of PlotGraphics with list of PolyXXX objects
+        xAxis : tuple[min, max], None
+            tuple with (min, max) axis range to view
+        yAxis : tuple[min, max], None
+            tuple with (min, max) axis range to view. same as xAxis
+        dc : `wx.DC`
+            drawing context - doesn't have to be specified.
+            If it's not, the offscreen buffer is used
         """
 
         if dc is None:
@@ -1357,9 +1521,9 @@ class PlotCanvas(wx.Panel):
 
         Parameters
         ----------
-        - dc : wx.DC
+        dc : `wx.DC`
             DC that will be passed
-        - mDataDict : dict
+        mDataDict : dict
             Dictionary of data that you want to use for the pointLabel
 
             keys-values:
