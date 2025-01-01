@@ -2,12 +2,15 @@
 """
 自定义Grid
 
+DataBaseList
+    基于 list[list] 的表格数据基
+
 Grid
-    基于 list[list] 的数据类型
+    基于 DataBaseList 的表格
     鼠标右键菜单和键盘快捷键--复制、粘贴、剪切、插入、删除、清除
 
 GridWithHeader
-    带表头的 Grid  两个 Grid 的组合
+    带表头的 Grid, 两个 Grid 的组合
 """
 from typing import List, Tuple, Union
 
@@ -22,7 +25,50 @@ def list_transpose(x: List[list]):
 
 class DataBaseList(gridbase.DataBase):
     """
+    基于 list[list] 的表格数据基
+
+    Parameters
+    ----------
+    data: List[list]
+        数据
+    rowlabels: List[str]
+        行标签
+    collabels: List[str]
+        列标签
+    show_format: str
+        显示格式
+
+    Attributes
+    ----------
+    data: List[list]
+        数据
+    rowlabels: List[str]
+        行标签
+    collabels: List[str]
+        列标签
+    show_format: str
+        显示格式
+
+    Methods
+    -------
+    GetNumberRows()
+        获取行数
+    GetNumberCols()
+        获取列数
+    GetValue(row: int, col: int)
+        获取单元格值
+    SetValue(row: int, col: int, value)
+        设置单元格值
+    SetData(data)
+        设置数据
     
+    SetRowLabels(rowlabels)
+        设置行标签
+    SetColLabels(collabels)
+        设置列标签
+    SetShowFormat(show_format)
+        设置显示格式
+
     """
 
     def __init__(self,
@@ -200,7 +246,7 @@ class GridWithHeader(wx.Panel):
 
     def _on_grid_cols(self, event: gridbase.GridRowColEvent):
         # 同步列增减
-        grid: Grid = event.GetEventObject().GetView()
+        grid: Grid = event.GetEventObject()
         if grid is self.header:
             obj = self.subject.dataBase
         elif grid is self.subject:

@@ -35,18 +35,20 @@ class DataRow:
 
     Methods
     -------
-    - lid--property
+    lid -- property
         id 的级别 即 length
-    - __len__(self)
+    __len__()
         data 的长度
-    - __getitem__(self, index)
+    __getitem__(index)
         data 的索引
-    - __setitem__(self, index, value)
+    __setitem__(index, value)
         data 的索引赋值
     """
 
     def __init__(self, ids: Tuple[int, ...], data: List[str]) -> None:
         self._ids = tuple(ids)
+        if not all([isinstance(x, str) for x in data]):
+            raise TypeError('data must be a list of strings')
         self.data = data
         # data [name, type, size, value]
 
@@ -86,7 +88,7 @@ class DataRow:
         if not isinstance(other, DataRow):
             return False
         return self.ids == other.ids
-    
+
     def __ne__(self, other: object) -> bool:
         if not isinstance(other, DataRow):
             return True
@@ -214,14 +216,12 @@ class DataViewModel(dv.DataViewModel):
                 'DataViewModel.AppendDataRow: data must be dataRow')
         if datarow.lid > self._lid_max:
             raise ValueError(
-                'DataViewModel.AppendDataRow: data length must be greater\
- than lid_max'
-            )
+                'DataViewModel.AppendDataRow: data length must be \
+greater than lid_max')
         if len(datarow) != self._ncol:
             raise ValueError(
-                'DataViewModel.AppendDataRow: data ColumnCount length\
- must be equal'
-            )
+                'DataViewModel.AppendDataRow: data ColumnCount length \
+must be equal')
 
     def AppendDataRow(self, datarow: DataRow) -> None:
         """添加单个 DataRow 到数据模型"""
@@ -342,9 +342,9 @@ class DataViewModel(dv.DataViewModel):
 
         Parameters
         ----------
-        - parent: DataViewItem
+        parent: DataViewItem
             所要查找的节点
-        - children: array-like(带`append`方法)
+        children: array-like(带`append`方法)
             子节点列表
             使用`children`的`append`方法添加`DataViewItem`
 
@@ -366,14 +366,13 @@ class DataViewModel(dv.DataViewModel):
 
         oid = self.GetItemId(parent)
         node = self.data[oid]
-        n_ind = len(node.ids)
-        if node.lid < self._lid_max:
+        n_ind = node.lid
+        if n_ind < self._lid_max:
             for k, item in self.data.items():
-                if item.lid == node.lid + 1 and item.ids[:n_ind] == node.ids:
+                if item.lid == n_ind + 1 and item.ids[:n_ind] == node.ids:
                     children.append(self.mapper[k])
                     n += 1
-            return n
-        return 0
+        return n
 
     def IsContainer(self, item: dv.DataViewItem) -> bool:
         """判断 item(DataViewItem) 是否有子节点"""
@@ -406,7 +405,9 @@ class DataViewModel(dv.DataViewModel):
         return True
 
     def HasValue(self, item, col):
-        return True
+        if get_itemid(item) in self.data and col < self._ncol:
+            return True
+        return False
 
     def GetValue(self, item: dv.DataViewItem, col: int):
         """返回 item(DataViewItem) 的 col 列的值, 如果不存在返回 None.
@@ -422,11 +423,15 @@ class DataViewModel(dv.DataViewModel):
         # print('SetValue')
         if not item:
             return False
-        oid = self.GetItemId(item)
-        self.data[oid][col] = value
-        self.ValueChanged(item, col)  # 通知视图值已更改
-        self.ItemChanged(item)  # 通知视图值已更改
-        return True
+        try:
+            oid = self.GetItemId(item)
+            self.data[oid][col] = value
+            self.ValueChanged(item, col)  # 通知视图值已更改
+            self.ItemChanged(item)  # 通知视图值已更改
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
     def ChangeValue(self, value, item: dv.DataViewItem, col: int) -> bool:
         """改变 item(DataViewItem) 的 col 列的值为 value, 等价于 SetValue"""

@@ -2,11 +2,14 @@
 """
 自定义Grid基类
 
-Grid
-    鼠标右键菜单和键盘快捷键--复制、粘贴、剪切、插入、删除、清除
+GridRowColEvent
+    有关表格行和列的事件
 
-GridWithHeader
-    带表头的 Grid  两个 Grid 的组合
+DataBase
+    数据集的基类, 需要重载一些方法
+
+GridBase
+    表格的基类, 需要重载一些方法
 """
 from typing import List, Tuple, Optional, Iterable, Literal, Union
 
@@ -62,7 +65,7 @@ class GridRowColEvent(wx.PyCommandEvent):
 
     def __init__(self, evtType, commandobj: Literal['row', 'col'],
                  commandtype: Literal['delete', 'insert'], pos: int, num: int,
-                 eventobj) -> None:
+                 databaseobj) -> None:
         super(GridRowColEvent, self).__init__(evtType)
         assert commandobj in ('row', 'col')
         assert commandtype in ('delete', 'insert')
@@ -72,7 +75,7 @@ class GridRowColEvent(wx.PyCommandEvent):
         self._commandtype = commandtype
         self._pos = pos
         self._num = num
-        self._eventobj = eventobj
+        self._databaseobj = databaseobj
 
     def GetPosition(self) -> int:
         return self._pos
@@ -85,7 +88,7 @@ class GridRowColEvent(wx.PyCommandEvent):
         GetCommandType() -> Literal['delete', 'insert']
 
         获取命令类型
-            当 Position == -1 & CommandType == 'insert' 时, 表示 append
+            当 Position == -1 and CommandType == 'insert' 时, 表示 append
         """
         return self._commandtype
 
@@ -99,12 +102,12 @@ class GridRowColEvent(wx.PyCommandEvent):
 
     def GetEventObject(self):
         """
-        GetEventObject() -> DataBase
+        GetEventObject() -> Grid
 
-        获取事件对象 数据基DataBase
-            如果想得到相应的 Grid 对象, 请使用 GetEventObject().GetView()
+        获取事件对象 表格类Grid
+            如果想得到相应的 DataBase 对象, 请使用 GetEventObject().dataBase
         """
-        return self._eventobj
+        return self._databaseobj.GetView()
 
 
 def build_empty(rows: int, cols: int) -> List[List[str]]:
@@ -112,9 +115,6 @@ def build_empty(rows: int, cols: int) -> List[List[str]]:
 
 
 class DataBase(gridlib.GridTableBase):  # 基类
-    """
-    
-    """
 
     data: List[list]
     rowlabels: Optional[List[str]] = None
@@ -147,8 +147,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         int
             The number of rows in your data.
 
-        Example
-        -------
+        Examples
+        --------
         >>> def GetNumberRows(self):
         ...     return len(self.data)
         """
@@ -163,8 +163,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         int
             The number of columns in your data.
 
-        Example
-        -------
+        Examples
+        --------
         >>> def GetNumberCols(self):
         ...     return len(self.data[0])
         """
@@ -178,7 +178,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
         Parameters
         ----------
         data : array-like
-            self.data
+            `self.data` will be passed here
 
         Returns
         ------
@@ -187,8 +187,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
             values to `self.data`, which will be passed 
             to other methods, the array dimensions must be 2
 
-        Example
-        -------
+        Examples
+        --------
         >>> def SetDataFunc(self, data):
         ...     if not isinstance(data, list):
         ...         raise TypeError('data type must be list')
@@ -214,8 +214,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         value : str or any
             The value of the cell. If called from the GUI, this will be a string.
 
-        Example
-        -------
+        Examples
+        --------
         >>> def SetValueFunc(self, data, row: int, col: int, value):
         ...     data[row][col] = value
         """
@@ -240,8 +240,8 @@ class DataBase(gridlib.GridTableBase):  # 基类
         str | float | int | complex
             The value of the cell as a string or number.
 
-        Example
-        -------
+        Examples
+        --------
         >>> def GetValueFunc(self, data, row: int, col: int) -> Union[str, float, int, complex]:
         ...     return data[row][col]
         """
@@ -268,13 +268,13 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        Example
-        -------
-        >>> # if isinstance(data, list)
+        Examples
+        --------
+        if isinstance(data, list)
         >>> def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
         ...     return data[:pos] + data[pos + numRows:]
-        >>>
-        >>> # if isinstance(data, ndarray)
+
+        if isinstance(data, ndarray)
         >>> def DeleteRowsFunc(self, data, pos: int, numRows: int = 1):
         ...     return np.delete(data, list(range(pos, pos + numRows)), axis=0)
         """
@@ -301,15 +301,15 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        Example
-        -------
-        >>> # if isinstance(data, list)
+        Examples
+        --------
+        if isinstance(data, list)
         >>> def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
         ...     ncols = len(data[0])
         ...     empty = [[''] * ncols for _ in range(numRows)]
         ...     return data[:pos] + empty + data[pos:]
-        >>>
-        >>> # if isinstance(data, ndarray)
+
+        if isinstance(data, ndarray)
         >>> def InsertRowsFunc(self, data, pos: int, numRows: int = 1):
         ...     empty = np.array([[''] * data.shape[1] for _ in range(numRows)]) 
         ...     return np.insert(data, pos, empty, axis=0)
@@ -335,14 +335,14 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        Example
-        -------
-        >>> # if isinstance(data, list)
+        Examples
+        --------
+        if isinstance(data, list)
         >>> def AppendRowsFunc(self, data, numRows: int = 1):
         ...     ncols = len(data[0])
         ...     return data + [[''] * ncols for _ in range(numRows)]
-        >>>
-        >>> # if isinstance(data, ndarray)
+
+        if isinstance(data, ndarray)
         >>> def AppendRowsFunc(self, data, numRows: int = 1):
         ...     empty = np.array([[''] * data.shape[1] for _ in range(numRows)])
         ...     return np.append(data, empty, axis=0)
@@ -370,15 +370,15 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        Example
-        -------
-        >>> # if isinstance(data, list)
+        Examples
+        --------
+        if isinstance(data, list)
         >>> def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
         ...     dat = list(map(list, zip(*data)))
         ...     dat_ = dat[:pos] + dat[pos + numCols:]
         ...     return list(map(list, zip(*dat_)))
-        >>>
-        >>> # if isinstance(data, ndarray)
+
+        if isinstance(data, ndarray)
         >>> def DeleteColsFunc(self, data, pos: int, numCols: int = 1):
         ...     return np.delete(data, list(range(pos, pos + numCols)), axis=1)
         """
@@ -405,17 +405,17 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        Example
-        -------
-        >>> # if isinstance(data, list)
+        Examples
+        --------
+        if isinstance(data, list)
         >>> def InsertColsFunc(self, data, pos: int, numCols: int = 1):
         ...     nrows = len(data)
         ...     empty = [[''] * nrows for _ in range(numCols)]
         ...     dat = list(map(list, zip(*data)))
         ...     dat_ = dat[:pos] + empty + dat[pos:]
         ...     return list(map(list, zip(*dat_)))
-        >>>
-        >>> # if isinstance(data, ndarray)
+
+        if isinstance(data, ndarray)
         >>> def InsertColsFunc(self, data, pos: int, numCols: int = 1):
         ...     empty = np.array([[''] * data.shape[0] for _ in range(numCols)])
         ...     return np.insert(data, pos, empty, axis=1)
@@ -441,16 +441,16 @@ class DataBase(gridlib.GridTableBase):  # 基类
         -----
         The returned data must have the same structure as the input data.
 
-        Example
-        -------
-        >>> # if isinstance(data, list)
+        Examples
+        --------
+        if isinstance(data, list)
         >>> def AppendColsFunc(self, data, numCols: int = 1):
         ...     nrows = len(data)
         ...     empty = [[''] * nrows for _ in range(numCols)]
         ...     dat = list(map(list, zip(*data)))
         ...     return list(map(list, zip(*(dat + empty))))
-        >>>
-        >>> # if isinstance(data, ndarray)
+
+        if isinstance(data, ndarray)
         >>> def AppendColsFunc(self, data, numCols: int = 1):
         ...     empty = np.array([[''] * data.shape[1] for _ in range(numCols)])
         ...     return np.append(data, empty, axis=0)
@@ -1017,19 +1017,18 @@ class GridBase(gridlib.Grid):
             name='GridBase',
             read_only: bool = False) -> None:
         super(GridBase, self).__init__(parent, id, pos, size, style, name)
+        assert isinstance(read_only, bool), 'read_only must be bool'
         self._read_only = read_only
         self.dataBase = dataBase
         self.SetTable(self.dataBase, True)
         self._init_menu()
 
         font0 = wx.Font(*FONT0)
-
         self.SetFont(font0)
         self.SetLabelFont(font0)
         self.SetDefaultCellFont(font0)
         # self.AutoSizeRows()
         self.SetDefaultRowSize(31, True)
-
         # self.SetLabelBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.SetLabelBackgroundColour(wx.Colour(250, 250, 250))
 
@@ -1117,8 +1116,6 @@ class GridBase(gridlib.Grid):
         row: int = event.GetRow()
         col: int = event.GetCol()
 
-        # print(f"右键点击了第{row}行，第{col}列")
-
         def set_selected():  # 将点击的单元格作为新的选定区域
             self.SelectBlock(row, col, row, col)
             self._selected_range = ((row, col), (row, col))
@@ -1141,11 +1138,8 @@ class GridBase(gridlib.Grid):
         # top_left = self.GetSelectionBlockTopLeft()[0]
         # bottom_right = self.GetSelectionBlockBottomRight()[0]
         top_left, bottom_right = self._selected_range
-        # print(top_left)
-        # print(bottom_right)
         lst = self.dataBase.data[top_left[0]:bottom_right[0] + 1]
-        lst_ = [map(str, it[top_left[1]:bottom_right[1] + 1]) for it in lst]
-        text = '\n'.join(['\t'.join(i) for i in lst_])
+        text = '\n'.join(['\t'.join(map(str, it[top_left[1]:bottom_right[1] + 1])) for it in lst])
         # 复制到剪切板
         if wx.TheClipboard.Open():
             wx.TheClipboard.SetData(wx.TextDataObject(text))
@@ -1161,24 +1155,23 @@ class GridBase(gridlib.Grid):
             wx.TheClipboard.Close()
         if success:
             text: str = text_data.GetText()
-            # print(text)
-            ls = text.split('\n')
-            if ls[-1] == '':
-                ls.pop()
-            ls1 = [row.split('\t') for row in ls]
+
+            def f(lst):
+                if lst[-1] == '': lst.pop()
+                return lst
+
+            text_arr = [f(row.split('\t')) for row in f(text.split('\n'))]
             # 如果粘贴的行数和列数大于现有行数和列数，需要增加行和列
-            dnrows = len(ls1) + x - self.GetNumberRows()
-            dncols = len(ls1[0]) + y - self.GetNumberCols()
+            dnrows = len(text_arr) + x - self.GetNumberRows()
+            dncols = len(text_arr[0]) + y - self.GetNumberCols()
             if dncols > 0:
-                # print("col")
                 self.dataBase.AppendCols(dncols)
             if dnrows > 0:
-                # print('row')
                 self.dataBase.AppendRows(dnrows)
 
-            for i in range(len(ls1)):
-                for j in range(len(ls1[i])):
-                    self.dataBase.data[i + x][j + y] = ls1[i][j]
+            for i in range(len(text_arr)):
+                for j in range(len(text_arr[i])):
+                    self.dataBase.data[i + x][j + y] = text_arr[i][j]
             # self.AutoSizeRows()
             self.dataBase.ValuesUpdated()  # 通知数据已经更新
             self.ForceRefresh()

@@ -2,12 +2,15 @@
 """
 自定义Grid
 
+DataBaseNP
+    基于 ndarray.char.chararray 的表格数据基
+
 Grid
-    基于 ndarray 的数据类型
+    基于 DataBaseNP 的数据类型
     鼠标右键菜单和键盘快捷键--复制、粘贴、剪切、插入、删除、清除
 
 GridWithHeader
-    带表头的 Grid  两个 Grid 的组合
+    带表头的 Grid, 两个 Grid 的组合
 """
 from typing import List, Tuple, Union
 
@@ -215,7 +218,7 @@ class GridWithHeader(wx.Panel):
 
     def _on_grid_cols(self, event: gridbase.GridRowColEvent):
         # 同步列增减
-        grid: Grid = event.GetEventObject().GetView()
+        grid: Grid = event.GetEventObject()
         if grid is self.header:
             obj = self.subject.dataBase
         elif grid is self.subject:
