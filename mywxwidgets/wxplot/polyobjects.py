@@ -637,7 +637,7 @@ class PolyBars(PolyBarsBase):
                  *,
                  barwidth: Union[float, Sequence[float]] = 1.,
                  edgecolour='black',
-                 edgewidth: int = 1.,
+                 edgewidth: float = 1.,
                  edgestyle: Literal['-', '--', ':', '__', '-.'] = '-',
                  fillcolour='red',
                  fillstyle: Literal['solid', 'transparent'] = 'solid',
