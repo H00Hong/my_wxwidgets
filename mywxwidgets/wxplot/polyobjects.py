@@ -1181,11 +1181,11 @@ class PlotGraphics(_PlotGraphics):
         """Returns list of legend names"""
         return [o.getLegend() for o in self.objects]
 
-    def setLogScale(self, logscale) -> None:
+    def setLogScale(self, logscale: Sequence[bool]) -> None:
         """Set the log scale boolean value."""
         self.logScale = logscale
 
-    def setAbsScale(self, absscale) -> None:
+    def setAbsScale(self, absscale: Sequence[bool]) -> None:
         """Set the abssolute scale boolean value."""
         self.absScale = absscale
 
@@ -1193,15 +1193,15 @@ class PlotGraphics(_PlotGraphics):
         """Thickens up lines and markers only for printing"""
         self.printerScale = scale
 
-    def setXLabel(self, xLabel='') -> None:
+    def setXLabel(self, xLabel: str = '') -> None:
         """Set the X axis label on the graph"""
         self.xLabel = xLabel
 
-    def setYLabel(self, yLabel='') -> None:
+    def setYLabel(self, yLabel: str = '') -> None:
         """Set the Y axis label on the graph"""
         self.yLabel = yLabel
 
-    def setTitle(self, title='') -> None:
+    def setTitle(self, title: str = '') -> None:
         """Set the title at the top of graph"""
         self.title = title
 
