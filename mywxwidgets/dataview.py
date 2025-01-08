@@ -47,8 +47,8 @@ class DataRow:
 
     def __init__(self, ids: Tuple[int, ...], data: List[str]) -> None:
         self._ids = tuple(ids)
-        if not all([isinstance(x, str) for x in data]):
-            raise TypeError('data must be a list of strings')
+        # if not all([isinstance(x, str) for x in data]):
+        #     raise TypeError('data must be a list of strings')
         self.data = data
         # data [name, type, size, value]
 
