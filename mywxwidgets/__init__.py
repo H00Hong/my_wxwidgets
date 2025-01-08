@@ -3,6 +3,6 @@
 from . import dataview, grid, richtextbase, wxplot
 
 __all__ = ['dataview', 'grid', 'richtextbase', 'wxplot']
-version_info = (0, 1, 1)
+version_info = (0, 1, 2)
 __version__ = '.'.join(map(str, version_info))
-__updated__ = '2024-12-27'
+__updated__ = '2025-1-8'

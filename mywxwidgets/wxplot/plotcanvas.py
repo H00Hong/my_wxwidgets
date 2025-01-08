@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
-import base64
-import io
+import os.path
 import sys
 from typing import Callable, Literal, Optional, Sequence, Tuple, Union
 
@@ -11,7 +9,6 @@ from numpy.typing import NDArray
 from wx.lib.plot.utils import (DisplaySide, TempStyle, scale_and_shift_point,
                                set_displayside)
 
-from ._ico import *
 from .polyobjects import (LINESTYLE, PlotGraphics, PlotPrintout, PolyBoxPlot,
                           PolyLine, PolyMarker)
 
@@ -20,13 +17,24 @@ ID_DATAMARKER = 20001
 ID_SAVE = 20003
 
 
-def base64_to_bitmap(base64_str: str, size=()) -> wx.Bitmap:
-    image_data = base64.b64decode(base64_str)
-    stream = io.BytesIO(image_data)
-    image = wx.Image(stream, wx.BITMAP_TYPE_ANY)
-    if size:
-        image = image.Scale(*size)  # 调整大小
-    return wx.Bitmap(image)
+def load_svg(name: str):
+    try:
+        dark = wx.SystemSettings.GetAppearance().IsDark()
+    except AttributeError:  # wxpython < 4.1
+        # copied from wx's IsUsingDarkBackground / GetLuminance.
+        bg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
+        fg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+        # See wx.Colour.GetLuminance.
+        bg_lum = (.299 * bg.red + .587 * bg.green + .114 * bg.blue) / 255
+        fg_lum = (.299 * fg.red + .587 * fg.green + .114 * fg.blue) / 255
+        dark = fg_lum - bg_lum > .2
+
+    with open(os.path.join(os.path.dirname(__file__), name), 'rb') as f:
+        svg = f.read()
+    if dark:
+        svg = svg.replace(b'fill:black;', b'fill:white;')
+    toolbarIconSize = wx.ArtProvider().GetDIPSizeHint(wx.ART_TOOLBAR)
+    return wx.BitmapBundle.FromSVG(svg, toolbarIconSize)
 
 
 class PlotCanvas(wx.Panel):
@@ -84,13 +92,13 @@ class PlotCanvas(wx.Panel):
     def _init_toolbar(self):
         self.toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL)
         self.toolbar.AddTool(ID_HOME, '主页',
-                             base64_to_bitmap(ico_home, (32, 32)),
+                             load_svg('home.svg'),
                              '重置为初始位置')
         self.toolbar.AddCheckTool(ID_DATAMARKER, '数据标记',
-                                  base64_to_bitmap(ico_marker, (32, 32)),
+                                  load_svg('datamarker.svg'),
                                   shortHelp='开关数据标记功能')
         self.toolbar.AddTool(ID_SAVE, '保存',
-                             base64_to_bitmap(ico_save, (32, 32)),
+                             load_svg('save.svg'),
                              '保存视图')
         self.toolbar.AddStretchableSpace()
         self.poilab = wx.StaticText(self.toolbar)

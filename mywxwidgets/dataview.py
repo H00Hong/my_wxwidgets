@@ -167,7 +167,7 @@ class DataViewModel(dv.DataViewModel):
     _lid_max: int
 
     def __init__(self, data: Sequence[DataRow], resort: bool = False) -> None:
-        dv.DataViewModel.__init__(self)
+        super(DataViewModel, self).__init__()
 
         self.SetDataRows(data, resort)
 

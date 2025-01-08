@@ -8,7 +8,7 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 
 class RichTextBase(wx.Frame):
     """
-    Rich Text Base Class
+    Rich Text Base Class.
 
     Attributes
     ----------

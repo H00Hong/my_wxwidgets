@@ -3,7 +3,7 @@
 # python setup.py bdist_wheel
 setup(
     name='mywxwidgets',  # 你的包名
-    version='0.1.1',  # 版本号
+    version='0.1.2',  # 版本号
     author='Yifan Hong',  # 作者名字
     author_email='hong.yf@qq.com',  # 作者邮箱
     description='My wxwidgets for `wxPython`',  # 简短描述
@@ -18,5 +18,8 @@ setup(
     ],
     python_requires='>=3.8',  # 所需的最低Python版本
     install_requires=[  # 依赖列表
-        'wxPython', 'numpy'
-    ])
+        'numpy', 'wxPython'
+    ],
+    package_data={
+        'mywxwidgets.wxplot': ['datamarker.svg', 'home.svg', 'save.svg'],
+    })
