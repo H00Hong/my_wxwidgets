@@ -642,14 +642,15 @@ class PolyBars(PolyBarsBase):
                  fillcolour='red',
                  fillstyle: Literal['solid', 'transparent'] = 'solid',
                  legend: str = ''):
-        super().__init__(points,
-                         barwidth=barwidth,
-                         edgecolour=edgecolour,
-                         edgewidth=edgewidth,
-                         edgestyle=edgestyle,
-                         fillcolour=fillcolour,
-                         fillstyle=fillstyle,
-                         legend=legend)
+        PolyBarsBase.__init__(self,
+                              points,
+                              barwidth=barwidth,
+                              edgecolour=edgecolour,
+                              edgewidth=edgewidth,
+                              edgestyle=edgestyle,
+                              fillcolour=fillcolour,
+                              fillstyle=fillstyle,
+                              legend=legend)
 
     def calc_rect(self, x, y, w):
         """ Calculate the rectangle for plotting. """
@@ -756,14 +757,14 @@ class PolyHistogram(PolyBarsBase):
         #                 for pair in self.bins)
         # points = list(zip(bar_center_x, self.hist))
         points = np.asarray((bar_center_x, self.hist)).T
-        PolyPoints.__init__(self,
-                            points,
-                            edgecolour=edgecolour,
-                            edgewidth=edgewidth,
-                            edgestyle=edgestyle,
-                            fillcolour=fillcolour,
-                            fillstyle=fillstyle,
-                            legend=legend)
+        PolyBarsBase.__init__(self,
+                              points,
+                              edgecolour=edgecolour,
+                              edgewidth=edgewidth,
+                              edgestyle=edgestyle,
+                              fillcolour=fillcolour,
+                              fillstyle=fillstyle,
+                              legend=legend)
 
     def calc_rect(self, y, low, high):
         """ Calculate the rectangle for plotting. """
