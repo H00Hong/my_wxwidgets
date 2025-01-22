@@ -12,6 +12,7 @@ Grid
 GridWithHeader
     带表头的 Grid, 两个 Grid 的组合
 """
+from ast import literal_eval
 from typing import List, Tuple, Union
 
 import wx
@@ -26,13 +27,15 @@ class DataBaseNP(gridbase.DataBase):
     _slen: int = 6
 
     def __init__(self,
-                 data: Union[ndarray, char.chararray, list, tuple, None] = None,
+                 data: Union[ndarray, char.chararray, list, tuple, str, None] = None,
                  rowlabels: Union[List[str], None] = None,
                  collabels: Union[List[str], None] = None,
                  show_format: Union[str, None] = None):
         super(DataBaseNP, self).__init__()
         if data is None:
             data = (3, 3)
+        elif isinstance(data, str):
+            data = literal_eval(data)
         if isinstance(data, tuple):
             if len(data) != 2:
                 raise ValueError(f'{self.__class__}.data: The length of the tuple must be 2')
@@ -116,7 +119,7 @@ class Grid(gridbase.GridBase):
     def __init__(self,
                  parent,
                  dat: Union[gridbase.DataBase, ndarray, char.chararray, List[list],
-                            Tuple[int, ...], None] = None,
+                            Tuple[int, ...], str, None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
@@ -146,24 +149,21 @@ class GridWithHeader(wx.Panel):
     def __init__(self,
                  parent,
                  subject: Union[ndarray, char.chararray, List[list],
-                                Tuple[int, ...], None] = None,
+                                Tuple[int, ...], str, None] = None,
                  header: Union[ndarray, char.chararray, List[list],
-                               Tuple[int, ...], None] = None,
+                               Tuple[int, ...], str, None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.TAB_TRAVERSAL,
                  name='GridWithHeader'):
         super().__init__(parent, id, pos, size, style, name)
-        if header is None:
-            if subject is None:
-                header = (1, 3)
-            elif isinstance(subject, tuple):
-                header = (1, subject[1])
-            elif isinstance(subject, list):
-                header = (1, len(subject[0]))
-        self.header = Grid(self, header)
         self.subject = Grid(self, subject)
+        if header is None:
+            header = (1, self.subject.dataBase.GetNumberCols())
+        self.header = Grid(self, header)
+        if self.header.dataBase.GetNumberCols() != self.subject.dataBase.GetNumberCols():
+            raise ValueError(f'header and subject must have same number of columns')
         self.header.HideColLabels()
         self.subject.HideColLabels()
         self.SetHeaderLabels([f'header{i+1}' for i in range(100)])

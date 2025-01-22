@@ -12,6 +12,7 @@ Grid
 GridWithHeader
     带表头的 Grid, 两个 Grid 的组合
 """
+from ast import literal_eval
 from typing import List, Tuple, Union
 
 import wx
@@ -79,6 +80,8 @@ class DataBaseList(gridbase.DataBase):
         super(DataBaseList, self).__init__()
         if data is None:
             data = (3, 3)
+        elif isinstance(data, str):
+            data = literal_eval(data)
         if isinstance(data, tuple):
             data = gridbase.build_empty(*data)
         self.data = self.SetDataFunc(data)
@@ -155,7 +158,7 @@ class Grid(gridbase.GridBase):
 
     def __init__(self,
                  parent,
-                 dat: Union[gridbase.DataBase, List[list], Tuple[int, ...], None] = None,
+                 dat: Union[gridbase.DataBase, List[list], Tuple[int, ...], str, None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
@@ -173,25 +176,20 @@ class GridWithHeader(wx.Panel):
 
     def __init__(self,
                  parent,
-                 subject: Union[List[List[str]], Tuple[int, ...], None] = None,
-                 header: Union[List[List[str]], Tuple[int, ...], None] = None,
+                 subject: Union[List[List[str]], Tuple[int, ...], str, None] = None,
+                 header: Union[List[List[str]], Tuple[int, ...], str, None] = None,
                  id=wx.ID_ANY,
                  pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
                  style=wx.TAB_TRAVERSAL,
                  name='GridWithHeader'):
         super().__init__(parent, id, pos, size, style, name)
-        if header is None:
-            if subject is None:
-                header = (1, 3)
-            elif isinstance(subject, tuple):
-                header = (1, subject[1])
-            elif isinstance(subject, list):
-                header = (1, len(subject[0]))
-            else:
-                raise TypeError(f'{self.__class__}: subject 数据类型不支持')
-        self.header = Grid(self, header)
         self.subject = Grid(self, subject)
+        if header is None:
+            header = (1, self.subject.dataBase.GetNumberCols())
+        self.header = Grid(self, header)
+        if self.header.dataBase.GetNumberCols() != self.subject.dataBase.GetNumberCols():
+            raise ValueError(f'header and subject must have same number of columns')
         self.header.HideColLabels()
         self.subject.HideColLabels()
         self.SetHeaderLabels([f'header{i+1}' for i in range(100)])

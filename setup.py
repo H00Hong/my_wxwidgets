@@ -3,7 +3,7 @@
 # python setup.py bdist_wheel
 setup(
     name='mywxwidgets',  # 你的包名
-    version='0.1.2',  # 版本号
+    version='0.1.3',  # 版本号
     author='Yifan Hong',  # 作者名字
     author_email='hong.yf@qq.com',  # 作者邮箱
     description='My wxwidgets for `wxPython`',  # 简短描述
