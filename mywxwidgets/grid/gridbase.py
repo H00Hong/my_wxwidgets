@@ -16,10 +16,8 @@ from typing import List, Tuple, Optional, Iterable, Literal, Union
 import wx
 import wx.grid as gridlib
 
-FONT0 = (14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-         False, 'Microsoft Yahei')
-FONT1 = (16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-         False, 'Microsoft Yahei')
+FONT0: wx.FontInfo = wx.FontInfo(14).FaceName('Microsoft Yahei')
+FONT1: wx.FontInfo = wx.FontInfo(16).FaceName('Microsoft Yahei')
 EVT_GRID_CELL_LEFT_CLICK = gridlib.EVT_GRID_CELL_LEFT_CLICK
 EVT_GRID_CELL_RIGHT_CLICK = gridlib.EVT_GRID_CELL_RIGHT_CLICK
 EVT_GRID_CELL_LEFT_DCLICK = gridlib.EVT_GRID_CELL_LEFT_DCLICK
@@ -136,7 +134,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
                         _cls, method)):
                 raise NotImplementedError(f'{self.__class__}: not implement {method}')
 
-#region abstractmethod
+    #region abstractmethod
 
     def GetNumberRows(self) -> int:
         """
@@ -457,9 +455,9 @@ class DataBase(gridlib.GridTableBase):  # 基类
         """
         ...
 
-#endregion
+    #endregion
 
-#region ProcessTableMessage
+    #region ProcessTableMessage
 
     def ValuesUpdated(self) -> None:  # 更新数据
         # print('ValuesUpdated')
@@ -536,8 +534,7 @@ class DataBase(gridlib.GridTableBase):  # 基类
                                 self)
         self.GetView().ProcessEvent(event)
 
-
-#endregion
+    #endregion
 
     def GetValue(self, row: int, col: int) -> str:
         """
@@ -1023,7 +1020,7 @@ class GridBase(gridlib.Grid):
         self.SetTable(self.dataBase, True)
         self._init_menu()
 
-        font0 = wx.Font(*FONT0)
+        font0 = wx.Font(FONT0)
         self.SetFont(font0)
         self.SetLabelFont(font0)
         self.SetDefaultCellFont(font0)
@@ -1035,6 +1032,9 @@ class GridBase(gridlib.Grid):
     def SetData(self, data):
         self.dataBase.SetData(data)
         self.ForceRefresh()
+
+    def GetData(self):
+        return self.dataBase.data
 
     def _init_menu(self):
         # 创建一个右键菜单
@@ -1062,7 +1062,7 @@ class GridBase(gridlib.Grid):
         # 绑定键盘事件
         self.Bind(wx.EVT_KEY_DOWN, self._OnKeyDown)
 
-#region event_bind
+    #region event_bind
 
     def _OnRangeSelect(self, event):
         # 当选择区域变化时，保存新的选定区域
@@ -1231,8 +1231,7 @@ class GridBase(gridlib.Grid):
         num = bottom_right[1] - top_left[1] + 1
         self.dataBase.DeleteCols(top_left[1], num)
 
-
-#endregion
+    #endregion
 
     def SetColLabels(self, collabels: Iterable) -> None:
         self.dataBase.SetColLabels(collabels)
