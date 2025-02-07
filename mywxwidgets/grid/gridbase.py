@@ -16,8 +16,9 @@ from typing import List, Tuple, Optional, Iterable, Literal, Union
 import wx
 import wx.grid as gridlib
 
-FONT0: wx.FontInfo = wx.FontInfo(14).FaceName('Microsoft Yahei')
-FONT1: wx.FontInfo = wx.FontInfo(16).FaceName('Microsoft Yahei')
+# FONT0 = wx.FontInfo(14).FaceName('Microsoft Yahei')
+FONT0 = (14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Microsoft Yahei')
+FONT1 = (16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Microsoft Yahei')
 EVT_GRID_CELL_LEFT_CLICK = gridlib.EVT_GRID_CELL_LEFT_CLICK
 EVT_GRID_CELL_RIGHT_CLICK = gridlib.EVT_GRID_CELL_RIGHT_CLICK
 EVT_GRID_CELL_LEFT_DCLICK = gridlib.EVT_GRID_CELL_LEFT_DCLICK
@@ -1020,7 +1021,7 @@ class GridBase(gridlib.Grid):
         self.SetTable(self.dataBase, True)
         self._init_menu()
 
-        font0 = wx.Font(FONT0)
+        font0 = wx.Font(*FONT0)
         self.SetFont(font0)
         self.SetLabelFont(font0)
         self.SetDefaultCellFont(font0)
@@ -1160,7 +1161,7 @@ class GridBase(gridlib.Grid):
                 if lst[-1] == '': lst.pop()
                 return lst
 
-            text_arr = [f(row.split('\t')) for row in f(text.split('\n'))]
+            text_arr = [f(row.split('\t')) for row in f(text.splitlines())]
             # 如果粘贴的行数和列数大于现有行数和列数，需要增加行和列
             dnrows = len(text_arr) + x - self.GetNumberRows()
             dncols = len(text_arr[0]) + y - self.GetNumberCols()
