@@ -18,8 +18,8 @@
 import sys
 from collections import defaultdict
 from itertools import count, takewhile
-from typing import (Dict, Iterable, List, Literal, Optional, Sequence, Tuple,
-                    overload)
+from typing import (Callable, Dict, Iterable, List, Literal, Optional,
+                    Sequence, Tuple, overload)
 
 import wx.dataview as dv
 
@@ -174,6 +174,7 @@ class DataViewModel(dv.DataViewModel):
     _ncol: int
     _lid_max: int
     _oid_counter: count
+    filter_func: Optional[Callable[[DataRow], bool]] = None
 
     def __init__(self, data: Sequence[DataRow], resort: bool = False) -> None:
         super(DataViewModel, self).__init__()
@@ -187,8 +188,9 @@ class DataViewModel(dv.DataViewModel):
         self._lid_max = 0
         self._ncol = 0
         self._oid_counter = count(1)  # 0 id 的 DataViewItem 会被判定为根节点
+        self.filter_func = None
 
-    def _gen_oid(self):
+    def _gen_oid(self) -> int:
         count = next(self._oid_counter)
         if count <= sys.maxsize:
             return count
@@ -436,12 +438,14 @@ must be equal'              )
 
     @overload
     def GetChildArr(self, oid: Optional[int] = None, item: Optional[dv.DataViewItem] = None,
-                    index: Optional[Tuple[int, ...]] = None, reteurn_item: Literal[False]=False) -> List[int]:        ...
+                    index: Optional[Tuple[int, ...]] = None, is_filter: bool = False,
+                    reteurn_item: Literal[False]=False) -> List[int]: ...
     @overload
     def GetChildArr(self, oid: Optional[int] = None, item: Optional[dv.DataViewItem] = None,
-                    index: Optional[Tuple[int, ...]] = None, reteurn_item: Literal[True]=True) -> List[dv.DataViewItem]:        ...
+                    index: Optional[Tuple[int, ...]] = None, is_filter: bool = False,
+                    reteurn_item: Literal[True]=True) -> List[dv.DataViewItem]: ...
     def GetChildArr(self, oid: int = None, item: dv.DataViewItem = None,
-                    index: Tuple[int, ...] = None, reteurn_item: bool = False):
+                    index: Tuple[int, ...] = None, is_filter: bool = False, reteurn_item: bool = False):
         """
         获取子节点列表.
 
@@ -453,6 +457,8 @@ must be equal'              )
             DataView 组件项对象。若提供则转换为oid后查询
         index : Tuple[int,...], optional
             树形结构索引路径。若提供则转换为oid后查询
+        is_filter : bool, optional
+            是否过滤掉隐藏节点
         return_item : bool, optional
             是否返回 `DataViewItem` 对象，默认为 `False`。
             若为 `True`，则返回 `DataViewItem` 对象列表，否则返回 `int` 对应的 `oid` 列表。
@@ -477,12 +483,15 @@ must be equal'              )
         elif index is not None:
             oid = self.index_oid[index]
         res = self.node_children[oid]
+        if is_filter and self.filter_func is not None:
+            res = [i for i in res if self.filter_func(self.data[i])]
         if reteurn_item:
             res = [self.mapper[i] for i in res]
         return res
 
     def GetChildren(self, parent: dv.DataViewItem, children) -> int:
         """查找 `parent`(`DataViewItem`) 节点的子节点, 并放入 `children` 中.
+        此函数用于 `DataViewCtrl` 查找子节点并显示.
 
         Parameters
         ----------
@@ -506,7 +515,8 @@ must be equal'              )
             oid = self.GetItemId(parent)
         child_oid = self.node_children[oid]
         for i in child_oid:
-            children.append(self.mapper[i])
+            if self.filter_func is None or self.filter_func(self.data[i]):
+                children.append(self.mapper[i])
         return len(child_oid)
 
     def IsContainer(self, item: dv.DataViewItem) -> bool:
@@ -514,7 +524,7 @@ must be equal'              )
         # print('IsContainer')
         if not item:
             return True
-        return len(self.node_children[self.GetItemId(item)]) != 0
+        return len(self.GetChildArr(item=item, is_filter=True)) != 0
 
     def _get_parent_idx(self, dr_idx: Tuple[int, ...]) -> Optional[Tuple[int, ...]]:
         idx = dr_idx[:-1]
@@ -554,14 +564,14 @@ must be equal'              )
             return None
         return self.GetDataRow(item).data[col]
 
-    def SetValue(self, value, item: dv.DataViewItem, col: int) -> bool:
-        """设置 `item`(`DataViewItem`) 的 `col` 列的值为 `value`, 返回是否更改成功."""
+    def SetValue(self, variant, item: dv.DataViewItem, col: int) -> bool:
+        """设置 `item`(`DataViewItem`) 的 `col` 列的值为 `variant`, 返回是否更改成功."""
         # print('SetValue')
         if not item:
             return False
         try:
             oid = self.GetItemId(item)
-            self.data[oid][col] = value
+            self.data[oid][col] = variant
             self.ValueChanged(item, col)  # 通知视图值已更改
             self.ItemChanged(item)  # 通知视图值已更改
             return True
@@ -569,9 +579,23 @@ must be equal'              )
             print(e)
             return False
 
-    def ChangeValue(self, value, item: dv.DataViewItem, col: int) -> bool:
-        """改变 `item`(`DataViewItem`) 的 `col` 列的值为 `value`, 等价于 `SetValue`."""
-        return self.SetValue(value, item, col)
+    def ChangeValue(self, variant, item: dv.DataViewItem, col: int) -> bool:
+        """改变 `item`(`DataViewItem`) 的 `col` 列的值为 `variant`, 等价于 `SetValue`."""
+        return self.SetValue(variant, item, col)
+
+    def SetFilter(self, filter_func: Optional[Callable[[DataRow], bool]] = None) -> None:
+        """
+        设置过滤器函数, 默认为 `None`, 即无过滤器.
+
+        Parameters
+        ----------
+        filter_func : Callable[[DataRow], bool], optional
+            函数参数为行数据(`DataRow`), 返回值为 `bool`.
+            如果返回值为 `True`, 则 **显示** 该行, 否则 **不显示** 该行.
+
+        """
+        self.filter_func = filter_func
+        self.Resort()
 
 
 __all__ = ['DataViewModel', 'DataRow', 'dv', 'get_itemid']
