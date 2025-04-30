@@ -21,3 +21,4 @@ __all__ = [
     'EVT_GRID_COLS_APPENDED', 'EVT_GRID_ROWS_INSERTED',
     'EVT_GRID_COLS_INSERTED'
 ]
+__updated__ = '2025-2-7'

@@ -5,6 +5,8 @@ import wx
 import wx.richtext as rt
 from wx.lib.embeddedimage import PyEmbeddedImage
 
+__updated__ = '2025-2-7'
+
 
 class RichTextBase(wx.Frame):
     """
