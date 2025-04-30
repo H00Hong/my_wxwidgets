@@ -220,7 +220,7 @@ class DataViewModel(dv.DataViewModel):
             raise ValueError(
                 'DataViewModel: data ColumnCount length must be equal')
 
-        self.check_all_container(True)
+        self._init_children()
 
     def _append_datarow(self, datarow: DataRow) -> int:
         oid = self._gen_oid()
