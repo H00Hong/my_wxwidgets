@@ -237,12 +237,10 @@ class DataViewModel(dv.DataViewModel):
                 'DataViewModel.AppendDataRow: data must be `DataRow`')
         if datarow.lid > self._lid_max:
             raise ValueError(
-                'DataViewModel.AppendDataRow: data length must be \
-greater than `lid_max`'                       )
+                'DataViewModel.AppendDataRow: data length must be greater than `lid_max`')
         if len(datarow) != self._ncol:
             raise ValueError(
-                'DataViewModel.AppendDataRow: data ColumnCount length \
-must be equal'              )
+                'DataViewModel.AppendDataRow: data ColumnCount length must be equal')
 
     def _init_children(self) -> None:
         # SetDataRows 之后运行
@@ -262,18 +260,17 @@ must be equal'              )
         # 将所有末节点的子节点设置为[]
         for dr in child_dr[-1]:
             self.node_children.setdefault(self.index_oid[dr.ids], [])
-        if len(child_dr) == 1:
-            return
-        # 添加所有中间层的子节点
-        for i in range(len(child_dr)-1):
-            lv_root_dr = child_dr[i]
-            lv_chil_dr = child_dr[i+1]
-            processed_len = 0
-            for dr in lv_root_dr:
-                arr = get_oid_with_index(takewhile(
-                    lambda x: x.ids[:dr.lid] == dr.ids, lv_chil_dr[processed_len:]))
-                self.node_children[self.index_oid[dr.ids]] = arr
-                processed_len += len(arr)
+        if len(child_dr) > 1:
+            # 添加所有中间层的子节点
+            for i in range(len(child_dr)-1):
+                lv_root_dr = child_dr[i]
+                lv_chil_dr = child_dr[i+1]
+                processed_len = 0
+                for dr in lv_root_dr:
+                    arr = get_oid_with_index(takewhile(
+                        lambda x: x.ids[:dr.lid] == dr.ids, lv_chil_dr[processed_len:]))
+                    self.node_children[self.index_oid[dr.ids]] = arr
+                    processed_len += len(arr)
 
     def AppendDataRow(self, datarow: DataRow) -> None:
         """添加单个 `DataRow` 到数据模型."""
@@ -444,8 +441,8 @@ must be equal'              )
     def GetChildArr(self, oid: Optional[int] = None, item: Optional[dv.DataViewItem] = None,
                     index: Optional[Tuple[int, ...]] = None, is_filter: bool = False,
                     reteurn_item: Literal[True]=True) -> List[dv.DataViewItem]: ...
-    def GetChildArr(self, oid: int = None, item: dv.DataViewItem = None,
-                    index: Tuple[int, ...] = None, is_filter: bool = False, reteurn_item: bool = False):
+    def GetChildArr(self, oid: Optional[int] = None, item: Optional[dv.DataViewItem] = None,
+                    index: Optional[Tuple[int, ...]] = None, is_filter: bool = False, reteurn_item: bool = False):
         """
         获取子节点列表.
 
