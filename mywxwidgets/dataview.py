@@ -259,11 +259,11 @@ must be equal'              )
             child_dr.append(lv_child_dr)
         # 将所有 lid==1 的 item 做为根节点的子节点
         self.node_children[None] = get_oid_with_index(child_dr[0])
-        if len(child_dr) == 1:
-            return
         # 将所有末节点的子节点设置为[]
         for dr in child_dr[-1]:
             self.node_children.setdefault(self.index_oid[dr.ids], [])
+        if len(child_dr) == 1:
+            return
         # 添加所有中间层的子节点
         for i in range(len(child_dr)-1):
             lv_root_dr = child_dr[i]
